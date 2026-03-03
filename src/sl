@@ -138,7 +138,7 @@ slowout() {
 # Argument parsing
 ##############################################################################
 
-VERSION=v2026-dev
+VERSION=v2026
 
 debug_flag=0
 passthru=()

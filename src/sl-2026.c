@@ -54,6 +54,8 @@ int main() {
         strcpy(dch2, dch2p);
     char *env = getenv("SL_SWEEP_COL");
     int clear_col = (env && *env) ? atoi(env) : 0;
+    if (getenv("SL_SWEEP_ALL"))
+        clear_col = COLS;
     char smoke[1024]; strcpy(smoke, sl[0]); sl[0] = smoke;
     for (int x = start_x/2*2; x >= 0; x -= 2) {
         int maxcols = COLS - x;

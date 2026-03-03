@@ -1,6 +1,5 @@
 #!/bin/bash
 
-version=2023
 self=$0
 if [ -L "$self" ]; then
     link=$(readlink "$self")
@@ -16,17 +15,246 @@ else
     bindir=$selfdir
 fi
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --2023|--2010|--1985)
-            version=${1#--}
-            shift
+resolve_latest() {
+    local v
+    for v in 2026 2023 2010 1985; do
+        if [[ -x "$bindir/sl-$v" ]]; then
+            echo "$v"
+            return
+        fi
+    done
+    echo 2023
+}
+
+subcmd=${1:-}
+case "$subcmd" in
+    2026|2023|2010|1985)
+        version=$subcmd
+        shift
+        ;;
+    print-clear-cols|mark-clear-cols|debug-capture|dump-capture)
+        shift
+        ;;
+    *)
+        version=$(resolve_latest)
+        ;;
+esac
+
+capture_screen_text() {
+    if [[ -n "${SL_CAPTURE_MOCK:-}" ]]; then
+        printf '%s' "$SL_CAPTURE_MOCK"
+        return 0
+    fi
+    case "${TERM_PROGRAM:-}" in
+        iTerm.app)
+            osascript <<'APPLESCRIPT' 2>/dev/null
+tell application "iTerm2"
+  if not (exists current window) then return ""
+  set s to current session of current tab of current window
+  try
+    return contents of s
+  on error
+    return text of s
+  end try
+end tell
+APPLESCRIPT
+            ;;
+        Apple_Terminal)
+            osascript <<'APPLESCRIPT' 2>/dev/null
+tell application "Terminal"
+  if not (exists front window) then return ""
+  return contents of selected tab of front window
+end tell
+APPLESCRIPT
             ;;
         *)
-            break
+            return 1
             ;;
     esac
-done
+}
+
+get_terminal_size() {
+    if size=$(stty size </dev/tty 2>/dev/null); then
+        TERM_LINES=${size%% *}
+        TERM_COLS=${size##* }
+    else
+        TERM_LINES=$(tput lines 2>/dev/null || echo "${LINES:-24}")
+        TERM_COLS=$(tput cols 2>/dev/null || echo "${COLUMNS:-80}")
+    fi
+}
+
+normalize_screen_text() {
+    local s=$1
+    s=${s//$'\r'/$'\n'}
+    printf '%s' "$s"
+}
+
+calc_clear_cols() {
+    local height=7
+    local cols lines start_y screen
+    get_terminal_size
+    cols=$TERM_COLS
+    lines=$TERM_LINES
+    start_y=$((lines - height - 1))
+    ((start_y < 0)) && return 1
+
+    screen=$(capture_screen_text) || return 1
+    screen=$(normalize_screen_text "$screen")
+
+    local -a vis
+    if [[ -n "$screen" ]]; then
+        while IFS= read -r line; do
+            vis+=("$line")
+        done < <(printf '%s\n' "$screen" | tail -n "$lines")
+    fi
+    local vis_count=${#vis[@]}
+    local top_pad=$((lines - vis_count))
+    ((top_pad < 0)) && top_pad=0
+
+    local -a hits
+    local row idx line i hit
+    for ((row = 0; row < height; row++)); do
+        idx=$((start_y + row - top_pad))
+        if ((idx >= 0 && idx < vis_count)); then
+            line=${vis[idx]}
+        else
+            line=""
+        fi
+
+        hit=-1
+        for ((i = ${#line} - 1; i >= 0; i--)); do
+            if [[ "${line:i:1}" != " " ]]; then
+                hit=$i
+                break
+            fi
+        done
+        hits+=("$hit")
+    done
+
+    local IFS=,
+    printf '%s\n' "${hits[*]}"
+}
+
+debug_capture_and_cols() {
+    local height=7
+    local lines start_y screen
+    get_terminal_size
+    lines=$TERM_LINES
+    start_y=$((lines - height - 1))
+    ((start_y < 0)) && return 1
+
+    screen=$(capture_screen_text) || return 1
+    screen=$(normalize_screen_text "$screen")
+
+    local -a vis
+    if [[ -n "$screen" ]]; then
+        while IFS= read -r line; do
+            vis+=("$line")
+        done < <(printf '%s\n' "$screen" | tail -n "$lines")
+    fi
+
+    local vis_count=${#vis[@]}
+    local top_pad=$((lines - vis_count))
+    ((top_pad < 0)) && top_pad=0
+
+    echo "TERM_PROGRAM=${TERM_PROGRAM:-}"
+    echo "lines=$lines start_y=$start_y vis_count=$vis_count top_pad=$top_pad"
+    echo "--- visible lines (tail -n $lines) ---"
+    local i
+    for ((i = 0; i < vis_count; i++)); do
+        printf '%3d | %s\n' "$i" "${vis[i]}"
+    done
+
+    local -a hits
+    local row idx line j hit
+    echo "--- target rows ---"
+    for ((row = 0; row < height; row++)); do
+        idx=$((start_y + row - top_pad))
+        if ((idx >= 0 && idx < vis_count)); then
+            line=${vis[idx]}
+        else
+            line=""
+        fi
+
+        hit=-1
+        for ((j = ${#line} - 1; j >= 0; j--)); do
+            if [[ "${line:j:1}" != " " ]]; then
+                hit=$j
+                break
+            fi
+        done
+        hits+=("$hit")
+        printf 'row=%d idx=%d hit=%d line=[%s]\n' "$row" "$idx" "$hit" "$line"
+    done
+
+    local IFS=,
+    echo "clear_cols=${hits[*]}"
+}
+
+mark_clear_cols_on_screen() {
+    local cols_csv=$1
+    local height=7 lines start_y
+    get_terminal_size
+    lines=$TERM_LINES
+    start_y=$((lines - height - 1))
+    ((start_y < 0)) && return 1
+
+    local IFS=,
+    local -a cols=($cols_csv)
+    local row col r c
+    for ((row = 0; row < height; row++)); do
+        col=${cols[row]:--1}
+        ((col < 0)) && continue
+        r=$((start_y + row + 1)) # terminal rows are 1-based
+        c=$((col + 2))           # right of detected rightmost character
+        printf "\033[%d;%dH|" "$r" "$c"
+    done
+    printf "\033[%d;1H" "$lines"
+}
+
+case "$subcmd" in
+    print-clear-cols)
+        if clear_cols=$(calc_clear_cols); then
+            printf '%s\n' "$clear_cols"
+            exit 0
+        else
+            echo "Failed to calculate clear columns." >&2
+            exit 1
+        fi
+        ;;
+    debug-capture)
+        debug_capture_and_cols
+        exit $?
+        ;;
+    dump-capture)
+        get_terminal_size
+        lines=$TERM_LINES
+        tmp=$(mktemp)
+        if capture_screen_text >"$tmp"; then
+            if [[ "${SL_DUMP_FULL:-0}" == "1" ]]; then
+                tr '\r' '\n' <"$tmp"
+            else
+                tr '\r' '\n' <"$tmp" | tail -n "$lines"
+            fi
+            rm -f "$tmp"
+            exit 0
+        else
+            rm -f "$tmp"
+            echo "Failed to capture screen text." >&2
+            exit 1
+        fi
+        ;;
+    mark-clear-cols)
+        if clear_cols=$(calc_clear_cols); then
+            mark_clear_cols_on_screen "$clear_cols"
+            printf '%s\n' "$clear_cols"
+            exit 0
+        else
+            echo "Failed to calculate clear columns." >&2
+            exit 1
+        fi
+        ;;
+esac
 
 slowout() {
     PERL_BADLANG=0 perl -e '
@@ -59,6 +287,13 @@ case "$version" in
         else
             script -q /dev/null "$bindir/sl-$version" "$@"
         fi | slowout
+        ;;
+    2026)
+        extra_args=()
+        if clear_cols=$(calc_clear_cols); then
+            extra_args=(--clear-cols "$clear_cols")
+        fi
+        exec "$bindir/sl-$version" "${extra_args[@]}" "$@"
         ;;
     *)
         exec "$bindir/sl-$version" "$@"

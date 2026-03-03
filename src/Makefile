@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 NCURSES_CFLAGS := $(shell ncurses6-config --cflags 2>/dev/null)
 NCURSES_LIBS   := $(or $(shell ncurses6-config --libs 2>/dev/null),-lcurses)
 

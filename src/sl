@@ -40,67 +40,40 @@ if [ -d "$selfdir/../libexec/sl-classic" ]; then
 else
     bindir=$selfdir
 fi
+PATH=$bindir:$PATH
 
 ##############################################################################
 # Functions
 ##############################################################################
 
+warn()  { echo "sl: $*" >&2; }
+error() { warn "$@"; exit 1; }
+
+# Show help and exit
+show_help() {
+    man sl 2>/dev/null || echo "Usage: sl [-dna] [version|subcommand] [options]"
+    exit 0
+}
+
+# Handle a long option from getopts -: pattern
+handle_long_opt() {
+    case "$1" in
+        help)    show_help ;;
+        version) echo "$VERSION"; exit 0 ;;
+        *)       error "unknown option: --$1" ;;
+    esac
+}
+
 # Find the latest available version
 resolve_latest() {
     local v
     for v in 2026 2023 2010 1985; do
-        if [[ -x "$bindir/sl-$v" ]]; then
+        if command -v "sl-$v" >/dev/null 2>&1; then
             echo "$v"
             return
         fi
     done
     echo 2023
-}
-
-# Run sl-2026 with sweep detection and optional flags.
-# Usage: sl2026 [-an] [ARGS...]
-#   -a  Sweep the entire screen (SL_SWEEP_ALL)
-#   -n  Dry run: show debug info without running
-sl2026() {
-    local OPTIND opt sweep_all=0 dryrun=0
-    while getopts "an" opt; do
-        case "$opt" in
-            a) sweep_all=1 ;;
-            n) dryrun=1 ;;
-        esac
-    done
-    shift $((OPTIND - 1))
-
-    source "$bindir/sl-2026-sweep.sh"
-    if ((sweep_all)); then
-        export SL_SWEEP_ALL=1
-    fi
-    local clear_col=9999
-    if ((sweep_all)); then
-        col=$(get_visible_screen | calc_max_display_col)
-    else
-        col=$(calc_clear_col)
-    fi
-    if [[ -n "$col" ]] && ((col >= 0)); then
-        clear_col=$col
-    fi
-    if ((debug_flag || dryrun)); then
-        get_terminal_size
-        printf "========== %s %s %s %sx%s %s" \
-            "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col"
-        ((dryrun)) && { echo; return; }
-    fi
-    SL_SWEEP_COL=$clear_col exec "$bindir/sl-$version" "$@"
-}
-
-# Run sl-1985 via script(1) with per-character delay output.
-# sl-1985 uses curses and needs a pty; use script(1) to provide one.
-sl1985() {
-    if script --help 2>&1 | grep -q -- '--command'; then
-        script -qc "$bindir/sl-1985" /dev/null
-    else
-        script -q /dev/null "$bindir/sl-1985" "$@"
-    fi | slowout
 }
 
 # Output filter for sl-1985: add per-character delay for retro feel.
@@ -139,18 +112,22 @@ slowout() {
 ##############################################################################
 
 VERSION=v2026
+global_opts="dhn"
 
 debug_flag=0
+dryrun=0
 passthru=()
-while [[ "${1:-}" == -* ]]; do
-    case "$1" in
-        -d) debug_flag=1; shift ;;
-        -h|--help) man sl 2>/dev/null || echo "Usage: sl [-d] [version|subcommand] [options]"; exit 0 ;;
-        --version) echo "$VERSION"; exit 0 ;;
-        --) shift; break ;;
-        *)  passthru+=("$1"); shift ;;
+OPTIND=1
+while getopts ":${global_opts}-:" opt; do
+    case "$opt" in
+        d) debug_flag=1 ;;
+        h) show_help ;;
+        n) dryrun=1 ;;
+        -) handle_long_opt "$OPTARG" ;;
+        '?') passthru+=("-$OPTARG") ;;
     esac
 done
+shift $((OPTIND - 1))
 set -- "${passthru[@]}" "$@"
 
 subcmd=${1:-}
@@ -168,34 +145,85 @@ case "$subcmd" in
 esac
 
 ##############################################################################
+# Version-specific functions
+##############################################################################
+
+# Run sl-2026 with sweep detection and optional flags.
+#   -a  Sweep the entire screen (SL_SWEEP_ALL)
+sl_2026() {
+    local OPTIND opt sweep_all=0
+    while getopts ":${global_opts}a-:" opt; do
+        case "$opt" in
+            [$global_opts]) ;;
+            a) sweep_all=1 ;;
+            -) handle_long_opt "$OPTARG" ;;
+            '?') error "unknown option: -$OPTARG" ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    . sl-2026-sweep.sh
+    if ((sweep_all)); then
+        export SL_SWEEP_ALL=1
+    fi
+    local clear_col=9999
+    if ((sweep_all)); then
+        col=$(get_visible_screen | calc_max_display_col)
+    else
+        col=$(calc_clear_col)
+    fi
+    if [[ -n "$col" ]] && ((col >= 0)); then
+        clear_col=$col
+    fi
+    if ((debug_flag || dryrun)); then
+        get_terminal_size
+        printf "========== %s %s %s %sx%s %s" \
+            "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col"
+        ((dryrun)) && { echo; return; }
+    fi
+    SL_SWEEP_COL=$clear_col exec sl-$version "$@"
+}
+
+# Run sl-1985 via script(1) with per-character delay output.
+# sl-1985 uses curses and needs a pty; use script(1) to provide one.
+sl_1985() {
+    if script --help 2>&1 | grep -q -- '--command'; then
+        script -qc sl-1985 /dev/null
+    else
+        script -q /dev/null sl-1985 "$@"
+    fi | slowout
+}
+
+##############################################################################
 # Subcommand dispatch (all exit here)
 ##############################################################################
 
 case "$subcmd" in
+    capture|sweep-area|clear-col|debug|mark)
+        . sl-2026-sweep.sh
+        ;;
+esac
+
+case "$subcmd" in
     capture)
-        source "$bindir/sl-screen.sh"
-        get_visible_screen || { echo "Failed to capture screen text." >&2; exit 1; }
+        get_visible_screen || { error "Failed to capture screen text."; }
         exit 0
         ;;
     sweep-area)
-        source "$bindir/sl-2026-sweep.sh"
-        get_sweep_area || { echo "Failed to capture screen text." >&2; exit 1; }
+        get_sweep_area || { error "Failed to capture screen text."; }
         exit 0
         ;;
     clear-col)
-        source "$bindir/sl-2026-sweep.sh"
-        clear_col=$(calc_clear_col) || { echo "Failed to calculate clear column." >&2; exit 1; }
+        clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
         printf '%s\n' "$clear_col"
         exit 0
         ;;
     debug)
-        source "$bindir/sl-2026-sweep.sh"
         debug_capture_and_col
         exit $?
         ;;
     mark)
-        source "$bindir/sl-2026-sweep.sh"
-        clear_col=$(calc_clear_col) || { echo "Failed to calculate clear column." >&2; exit 1; }
+        clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
         draw_column_marker "$clear_col"
         printf '%s\n' "$clear_col"
         exit 0
@@ -206,14 +234,8 @@ esac
 # Run the selected version
 ##############################################################################
 
-case "$version" in
-    1985)
-        sl1985 "$@"
-        ;;
-    2026)
-        sl2026 "$@"
-        ;;
-    *)
-        exec "$bindir/sl-$version" "$@"
-        ;;
-esac
+if declare -f "sl_$version" >/dev/null 2>&1; then
+    "sl_$version" "$@"
+else
+    exec sl-$version "$@"
+fi

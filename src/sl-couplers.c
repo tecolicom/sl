@@ -23,4 +23,8 @@ void couple(void) {
     if (car_enabled("NULL", CAR_NULL))
         couplers[n_couplers++] = null_coupler();
 #endif
+#ifdef CAR_SHIMMER
+    if (car_enabled("SHIMMER", CAR_SHIMMER))
+        couplers[n_couplers++] = shimmer_coupler();
+#endif
 }

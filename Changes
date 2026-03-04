@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+    - Add shimmer effect on the bottom row with truecolor gradient
+    - Modulate block thickness (▔/▀) for rail rumble effect (iTerm2)
+    - Use background-colored spaces on Apple Terminal (ambiguous-width workaround)
+    - Fall back to 256-color when COLORTERM is not truecolor/24bit
+
 v2026 2026-03-03
 
     - Add sl-2026: screen-aware version with conditional sweep

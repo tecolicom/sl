@@ -72,7 +72,13 @@ On unsupported terminals or platforms, the train always sweeps
 
   Screen-aware version.  Detects text on the terminal and sweeps only
   when the train reaches it.  Enters from beyond the right edge of the
-  screen to preserve right-side text.
+  screen to preserve right-side text.  A shimmer effect runs along the
+  bottom row.  On iTerm2, a truecolor gradient sweeps across,
+  switching between thin (**▔**) and thick (**▀**) upper block
+  characters to simulate rail rumble.  On Apple Terminal, background-
+  colored spaces are used instead to avoid ambiguous-width character
+  rendering issues.  Color falls back to 256-color when **COLORTERM**
+  is not set to **truecolor** or **24bit**.
 
 # SUBCOMMANDS
 
@@ -111,6 +117,14 @@ sweep detection mechanism.
 
   Passed internally to the sl-2026 binary.  When set, sweeps all
   screen lines instead of just the train area.
+
+- **SL\_SHIMMER**
+
+  Passed internally to the sl-2026 binary.  Controls the shimmer
+  effect on the bottom row.  The absolute value sets the trail
+  divisor (longer tail with smaller values).  A positive value
+  selects right-to-left scanning (default); a negative value
+  selects left-to-right.  Default is **1**.
 
 # INSTALL
 

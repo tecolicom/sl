@@ -40,5 +40,3 @@ jobs:
         run: |
           ./sl --version
           ./sl --version | grep -q '^v'
-          ./sl -h 2>&1 | head -1
-          ./sl -n 2>&1 || true

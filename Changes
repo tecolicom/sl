@@ -10,7 +10,6 @@ v2026 2026-03-03
     - Add -h/--help and --version options
     - Add man page (sl.1)
     - Add shell script wrapper for version dispatch
-    - Rename sl.c to sl-1985.c
 
 v2023 2024-11-27
 

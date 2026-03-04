@@ -22,6 +22,7 @@
  *      - x: current SL position (decreasing from COLS toward 0)
  *    - terminal: called once after the animation loop (終着駅)
  *    - COLS, LINES: available as globals (extern in sl-coupler.h)
+ *    - sl_step: set to 0 to stop, +2 to reverse (default -2)
  *    - Any callback may be NULL if not needed.
  *
  * 2. Declare the constructor in this header (below).
@@ -61,6 +62,7 @@ static inline void mvprintw(int y, int x, const char *fmt, const char *str) {
 }
 
 extern int COLS, LINES;
+extern int sl_step;
 
 typedef struct coupler {
     void *ctx;

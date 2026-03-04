@@ -5,6 +5,7 @@
 typedef struct {
     char dch2[20];
     int clear_col;
+    int stop_col;
     int sweep_all;
     int start_y;
     int height;
@@ -20,6 +21,8 @@ static void sweep_origin(coupler *cpl) {
 
     char *env = getenv("SL_SWEEP_COL");
     ctx->clear_col = (env && *env) ? atoi(env) : 0;
+    env = getenv("SL_STOP_COL");
+    ctx->stop_col = (env && *env) ? atoi(env) : -1;
     ctx->sweep_all = getenv("SL_SWEEP_ALL") != NULL;
     ctx->height = 7;  /* SL art height */
     ctx->start_y = LINES - ctx->height - 1;
@@ -29,6 +32,10 @@ static void sweep_origin(coupler *cpl) {
 
 static void sweep_arriving(coupler *cpl, int x) {
     sweep_ctx *ctx = cpl->ctx;
+    if (ctx->stop_col >= 0 && x <= ctx->stop_col) {
+        sl_step = 0;
+        return;
+    }
     if (x > ctx->clear_col) return;
 
     int y0 = ctx->sweep_all ? 0 : ctx->start_y;

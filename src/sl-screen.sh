@@ -94,7 +94,7 @@ get_visible_screen() {
     # tail to pick up scrollback data after clear.
     # NBSP is stripped by normalize_screen_text and does not affect
     # sweep calculations.  The last line is outside the SL area.
-    mvprintf "$TERM_LINES" 1 '%s' "$NBSP" > /dev/tty
+    mvprintf "$TERM_LINES" 1 '%s\b' "$NBSP" > /dev/tty
     local screen
     screen=$(capture_screen_text) || return 1
     screen=$(normalize_screen_text "$screen")

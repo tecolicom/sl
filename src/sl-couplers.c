@@ -15,6 +15,10 @@ int car_enabled(const char *name, int dflt) {
 }
 
 void couple(void) {
+#ifdef CAR_SWEEP
+    if (car_enabled("SWEEP", CAR_SWEEP))
+        couplers[n_couplers++] = sweep_coupler();
+#endif
 #ifdef CAR_NULL
     if (car_enabled("NULL", CAR_NULL))
         couplers[n_couplers++] = null_coupler();

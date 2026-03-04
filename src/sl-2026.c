@@ -11,11 +11,6 @@
 #include <stdio.h>
 #include <term.h>
 
-void mvprintw(int y, int x, const char* fmt, const char* str) {
-    tputs(tparm(tgoto(cursor_address, x, y)), 1, putchar);
-    printf(fmt, str);
-}
-
 /* Print at (y, x) but limit output to n display columns.
    All SL art characters are single-width, so 1 codepoint = 1 column. */
 void mvputns(int y, int x, const char *s, int n) {
@@ -56,31 +51,21 @@ int main() {
     int COLS = tigetnum("cols"), LINES = tigetnum("lines");
     int len = strlen(sl[0]), height = sizeof(sl)/sizeof(sl[0]);
     int start_x = COLS, start_y = LINES - height - 1;
-    char dch2[20] = "", *dch2p = tparm(tigetstr("dch"), 2);
-    if (dch2p != NULL)
-        strcpy(dch2, dch2p);
-    char *env = getenv("SL_SWEEP_COL");
-    int clear_col = (env && *env) ? atoi(env) : 0;
-    int sweep_all = getenv("SL_SWEEP_ALL") != NULL;
     char smoke[1024]; strcpy(smoke, sl[0]); sl[0] = smoke;
     for (int i = 0; i < n_couplers; i++)
-        if (couplers[i].init) couplers[i].init(&couplers[i], COLS, LINES);
+        if (couplers[i].origin) couplers[i].origin(&couplers[i], COLS, LINES);
     for (int x = start_x/2*2; x >= 0; x -= 2) {
         int maxcols = COLS - x;
-        if (x <= clear_col) {
-            int y0 = sweep_all ? 0 : start_y;
-            int y1 = sweep_all ? LINES : start_y + height;
-            for (int y = y0; y < y1; y++)
-                mvprintw(y, 0, "%s", dch2);
-        }
+        for (int i = 0; i < n_couplers; i++)
+            if (couplers[i].arriving) couplers[i].arriving(&couplers[i], COLS, LINES, x);
         for (int y = 0; y < height; y++)
             mvputns(start_y + y, x, sl[y], maxcols);
         for (int i = 0; i < n_couplers; i++)
-            if (couplers[i].frame) couplers[i].frame(&couplers[i], COLS, LINES, x);
+            if (couplers[i].departed) couplers[i].departed(&couplers[i], COLS, LINES, x);
         fflush(stdout);
         strcat(smoke, " o");
         usleep(100000);
     }
     for (int i = 0; i < n_couplers; i++)
-        if (couplers[i].cleanup) couplers[i].cleanup(&couplers[i], COLS, LINES);
+        if (couplers[i].terminal) couplers[i].terminal(&couplers[i], COLS, LINES);
 }

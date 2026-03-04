@@ -6,19 +6,21 @@
  * 1. Create car-xxx.c with a constructor function:
  *
  *      #include "sl-coupler.h"
- *      static void xxx_init(coupler *cpl, int COLS, int LINES) { ... }
- *      static void xxx_frame(coupler *cpl, int COLS, int LINES, int x) { ... }
- *      static void xxx_cleanup(coupler *cpl, int COLS, int LINES) { ... }
+ *      static void xxx_origin(coupler *cpl, int COLS, int LINES) { ... }
+ *      static void xxx_arriving(coupler *cpl, int COLS, int LINES, int x) { ... }
+ *      static void xxx_departed(coupler *cpl, int COLS, int LINES, int x) { ... }
+ *      static void xxx_terminal(coupler *cpl, int COLS, int LINES) { ... }
  *      coupler xxx_coupler(void) {
- *          return (coupler){ .init = xxx_init, .frame = xxx_frame,
- *                            .cleanup = xxx_cleanup };
+ *          return (coupler){ .arriving = xxx_arriving,
+ *                            .departed = xxx_departed };
  *      }
  *
- *    - ctx: per-instance data pointer (malloc in init, free in cleanup)
- *    - init: called once before the animation loop
- *    - frame: called each frame after SL is drawn, before fflush
+ *    - ctx: per-instance data pointer (malloc in origin, free in terminal)
+ *    - origin: called once before the animation loop (始発駅)
+ *    - arriving: called each frame before SL is drawn (まもなく到着)
+ *    - departed: called each frame after SL is drawn, before fflush (発車)
  *      - x: current SL position (decreasing from COLS toward 0)
- *    - cleanup: called once after the animation loop
+ *    - terminal: called once after the animation loop (終着駅)
  *    - Any callback may be NULL if not needed.
  *
  * 2. Declare the constructor in this header (below).
@@ -49,11 +51,20 @@
 #ifndef SL_COUPLER_H
 #define SL_COUPLER_H
 
+#include <stdio.h>
+#include <term.h>
+
+static inline void mvprintw(int y, int x, const char *fmt, const char *str) {
+    tputs(tparm(tgoto(cursor_address, x, y)), 1, putchar);
+    printf(fmt, str);
+}
+
 typedef struct coupler {
     void *ctx;
-    void (*init)(struct coupler *cpl, int COLS, int LINES);
-    void (*frame)(struct coupler *cpl, int COLS, int LINES, int x);
-    void (*cleanup)(struct coupler *cpl, int COLS, int LINES);
+    void (*origin)(struct coupler *cpl, int COLS, int LINES);
+    void (*arriving)(struct coupler *cpl, int COLS, int LINES, int x);
+    void (*departed)(struct coupler *cpl, int COLS, int LINES, int x);
+    void (*terminal)(struct coupler *cpl, int COLS, int LINES);
 } coupler;
 
 #define MAX_COUPLERS 8
@@ -64,5 +75,6 @@ extern int n_couplers;
 void couple(void);
 int car_enabled(const char *name, int dflt);
 coupler null_coupler(void);
+coupler sweep_coupler(void);
 
 #endif

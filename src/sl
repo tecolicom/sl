@@ -111,7 +111,7 @@ slowout() {
 # Argument parsing
 ##############################################################################
 
-VERSION=v2026
+VERSION=v2026.0.1
 global_opts="dhn"
 
 debug_flag=0

@@ -1,5 +1,14 @@
 {{$NEXT}}
 
+v2026.0.1 2026-03-04
+
+    - Refactor sl wrapper: getopts-based option parsing with combined short options
+    - Add warn()/error() helper functions
+    - Fix sweep-area off-by-one error
+    - Fix NBSP not detected in display width calculation
+    - Add GitHub Actions CI workflow
+    - Rename sl-2026-sweep.sh to sl-sweep.sh
+
 v2026 2026-03-03
 
     - Add sl-2026: screen-aware version with conditional sweep

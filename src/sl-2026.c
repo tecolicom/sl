@@ -32,7 +32,7 @@ void mvputns(int y, int x, const char *s, int n) {
     }
 }
 
-/* Shimmer line on the top row – truecolor foreground on U+2594.
+/* Shimmer line on the bottom row – truecolor foreground on U+2594.
    Asymmetric comet shape: sharp leading edge, long trailing tail.
    Uses direct ANSI sequences because terminfo has no truecolor support. */
 void render_scanner(int row, int cols, int center, int dir, int trail_div) {
@@ -101,7 +101,7 @@ int main() {
     int trail_div = abs(shimmer);
     int scan_pos = 0, scan_step = COLS / 12;
     if (scan_step < 2) scan_step = 2;
-    if (shimmer < 0) scan_step = -scan_step;
+    if (shimmer > 0) scan_step = -scan_step;
     for (int x = start_x/2*2; x >= 0; x -= 2) {
         int maxcols = COLS - x;
         if (x <= clear_col) {
@@ -112,7 +112,7 @@ int main() {
         }
         for (int y = 0; y < height; y++)
             mvputns(start_y + y, x, sl[y], maxcols);
-        render_scanner(0, COLS, scan_pos, scan_step, trail_div);
+        render_scanner(LINES - 1, COLS, scan_pos, scan_step, trail_div);
         fflush(stdout);
         scan_pos = (scan_pos + scan_step + COLS) % COLS;
         strcat(smoke, " o");
@@ -120,7 +120,7 @@ int main() {
     }
     /* Clear scanner bar */
     printf("\033[0m");
-    tputs(tparm(tgoto(cursor_address, 0, 0)), 1, putchar);
+    tputs(tparm(tgoto(cursor_address, 0, LINES - 1)), 1, putchar);
     tputs(tigetstr("el"), 1, putchar);
     fflush(stdout);
 }

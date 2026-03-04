@@ -1,0 +1,44 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ncurses (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libncurses-dev
+
+      - name: Build binaries
+        working-directory: src
+        run: |
+          make sl-2010 sl-2023 sl-2026
+          if make sl-1985 2>/dev/null; then
+            echo "sl-1985 built successfully"
+          else
+            echo "::warning::sl-1985 build failed (expected on some platforms)"
+          fi
+
+      - name: Shell script syntax check
+        run: |
+          bash -n src/sl
+          bash -n src/sl-screen.sh
+          bash -n src/sl-2026-sweep.sh
+
+      - name: Basic option tests
+        working-directory: src
+        run: |
+          ./sl --version
+          ./sl --version | grep -q '^v'
+          ./sl -h 2>&1 | head -1
+          ./sl -n 2>&1 || true

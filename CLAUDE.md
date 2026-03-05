@@ -72,19 +72,44 @@ sl-2026 のプラグイン拡張機構。鉄道用語で命名されている。
 
 ### 新しい car の追加手順
 
-1. `src/car-xxx.c` を作成し `xxx_coupler()` コンストラクタを実装
-2. `src/sl-coupler.h` に `coupler xxx_coupler(void);` を宣言
-3. `src/sl-couplers.c` に `#ifdef CAR_XXX` ブロックで登録
+1. `src/cars/xxx.c` を作成し `xxx_coupler()` コンストラクタを実装
+2. `src/cars/coupler.h` に `coupler xxx_coupler(void);` を宣言
+3. `src/cars/couplers.c` に `#ifdef CAR_XXX` ブロックで登録
 4. `src/Makefile` の `SL2026_CARS` に `XXX=1`（デフォルト有効）または `XXX=0`（無効）を追加
 
 コンパイル時デフォルトは `-DCAR_XXX=N` で決まり、実行時に `SL_CAR_XXX` 環境変数で上書き可能（`"0"` で無効、それ以外で有効）。
+`SL_CAR_XXX` は `"0"` 以外なら有効と判定されるため、モード文字列（例: `"rumble"`）を渡しても有効になる。`sl_option("CAR_XXX")` でモード値を取得可能。
 
 ### 既存の car
 
-- **`car-sweep.c`** — スクリーン掃除（テキスト存在箇所のみ消去）
-- **`car-null.c`** — 何もしないダミー（テンプレート/テスト用、デフォルト無効）
-- **`car-shimmer.c`** — 最下行にトゥルーカラーのシマーエフェクトを描画
+- **`cars/sweep.c`** — スクリーン掃除（テキスト存在箇所のみ消去）
+- **`cars/null.c`** — 何もしないダミー（テンプレート/テスト用、デフォルト無効）
+- **`cars/rail.c`** — 最下行（LINES-1）にトゥルーカラーのレールエフェクトを描画。shimmer（デフォルト）と rumble モード
 
 ## man ページ生成
 
 `src/sl.1` は `src/README.md` から pandoc + カスタム Lua フィルタ（`src/deflist.lua`）で生成される。`sl.1` を直接編集しないこと。
+
+## ターミナルエフェクト実装の知見
+
+### ブロック文字と Ambiguous Width 問題
+
+- **▔**（U+2594）と **▀**（U+2580）は East Asian Width が "Ambiguous"
+- Apple Terminal は CJK ロケールでこれらを全角（2列）描画する → 行折り返し・脱線の原因
+- `wcwidth()` は 1 を返すがターミナル側の描画は 2 列 → プログラムからは検出困難
+- **対策**: Apple Terminal では `TERM_PROGRAM=Apple_Terminal` を検出し、背景色付きスペース（`\033[48;2;R;G;Bm` + ` `）にフォールバック。スペースは常に半角1列。
+- なお、Apple Terminal はオリジナル sl-2026 の box-drawing 文字でも脱線するため、既知の制限として許容
+
+### アンダーライン方式の検討結果（不採用）
+
+SGR 4（underline）+ SGR 58（underline color）でブロック文字の代わりにアンダーラインを使う方式を試したが不採用:
+
+- **線が細すぎる**: アンダーラインは 1px で ▔ より視認性が劣る
+- **列車との共存が困難**: `arriving` フックで事前にアンダーラインを敷いても、列車描画が上書きする。`departed` フックで列車エリアをスキップして両側に描画しても、列車前方にうまく表示されない
+- **結論**: ▔/▀ ブロック文字による前景色描画が最も見栄えがよい
+
+### トゥルーカラー検出
+
+- `COLORTERM` 環境変数が `"truecolor"` または `"24bit"` → `\033[38;2;R;G;Bm`（前景）/ `\033[48;2;R;G;Bm`（背景）
+- それ以外 → 256色フォールバック: `\033[38;5;Nm` / `\033[48;5;Nm`（6×6×6 カラーキューブ）
+- RGB → 256色変換: `16 + 36*ri + 6*gi + bi`（各成分を `r < 48 ? 0 : r < 115 ? 1 : (r-35)/40` で 0-5 に変換）

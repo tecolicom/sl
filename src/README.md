@@ -112,6 +112,14 @@ sweep detection mechanism.
   Passed internally to the sl-2026 binary.  When set, sweeps all
   screen lines instead of just the train area.
 
+- **SL\_CAR\_RAIL**
+
+  Control the rail shimmer effect on the bottom row (2026 only).
+  Set to **0** to disable, **rumble** for ▔/▀ thickness modulation,
+  or any other value to enable the default shimmer mode.
+  On Apple Terminal, background-colored spaces are used instead of
+  block characters to avoid ambiguous-width rendering issues.
+
 # INSTALL
 
     brew tap tecolicom/tap

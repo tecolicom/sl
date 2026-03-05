@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+    - Add rail shimmer effect on the bottom row (cars/rail.c)
+    - Shimmer (default) and rumble modes via SL_CAR_RAIL
+    - Truecolor gradient with 256-color fallback
+    - Apple Terminal: background-colored spaces fallback
+
 v2026.2 2026-03-05
 
     - Add -s option to stop train at text boundary

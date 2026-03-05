@@ -1,14 +1,14 @@
 # NAME
 
-sl - Steam Locomotive runs across your terminal
+sl - sl runs across your terminal
 
 # SYNOPSIS
 
-**sl** [**-d**] [*version*|*subcommand*] [*options*]
+**sl** [**-dn**] [*version*|*subcommand*] [**-as**]
 
 # DESCRIPTION
 
-**sl** is a wrapper script that dispatches to versioned Steam Locomotive
+**sl** is a wrapper script that dispatches to versioned sl
 binaries.  When you mistype **ls**, a steam locomotive runs across your
 terminal as a gentle punishment.
 
@@ -41,16 +41,23 @@ On unsupported terminals or platforms, the train always sweeps
 
   Show debug information on the last line before running.
 
-- **-a** (2026 only)
+- **-n**
+
+  Dry run.  Show debug information and exit without running the train.
+
+# OPTIONS (2026 only)
+
+- **-a**
 
   Sweep the entire screen.  Without this option, only the 7-line area
   where the train runs is swept.  With **-a**, all screen lines are
   swept and the sweep start position is determined from the full screen
   content rather than just the train area.
 
-- **-n** (2026 only)
+- **-s**
 
-  Dry run.  Show debug information and exit without running the train.
+  Stop the train when it reaches existing text on the screen instead
+  of sweeping through it.
 
 # VERSIONS
 
@@ -106,6 +113,11 @@ sweep detection mechanism.
 
   Passed internally to the sl-2026 binary.  Specifies the column at
   which sweeping begins.
+
+- **SL\_STOP\_COL**
+
+  Passed internally to the sl-2026 binary.  Specifies the column at
+  which the train stops.
 
 - **SL\_SWEEP\_ALL**
 

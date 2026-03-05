@@ -1,18 +1,20 @@
 #!/bin/bash
 
-# sl - Steam Locomotive wrapper script
+# sl - sl wrapper script
 #
 # Dispatches to versioned sl binaries (sl-1985, sl-2010, sl-2023, sl-2026).
 # The sl-2026 version detects existing text on the terminal screen and
 # begins sweeping (pushing text off via dch2) only when the train reaches it.
 #
-# Usage: sl [-d] [VERSION|SUBCOMMAND] [ARGS...]
+# Usage: sl [-dn] [VERSION|SUBCOMMAND] [-as]
 #
 # Options:
 #   -d          Show debug info on the last line before running
+#   -n          Dry run (show debug info and exit)
 #
 # Version-specific options (sl 2026):
 #   -a          Sweep the entire screen
+#   -s          Stop at existing text instead of sweeping
 #
 # Subcommands:
 #   capture     Dump captured screen text

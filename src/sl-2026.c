@@ -1,5 +1,5 @@
 /*
- * sl-2026 - Steam Locomotive with conditional sweep
+ * sl-2026 - sl with conditional sweep
  *
  * Based on sl-2023. Reads SL_SWEEP_COL from the environment to determine
  * when to start sweeping (deleting characters at the left edge).

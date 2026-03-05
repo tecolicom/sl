@@ -6,10 +6,7 @@
  * Without SL_SWEEP_COL, sweeps only at x=0 (last frame).
  */
 #include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <term.h>
+#include "sl.h"
 
 /* Print at (y, x) but limit output to n display columns.
    All SL art characters are single-width, so 1 codepoint = 1 column. */
@@ -39,9 +36,10 @@ char *sl[] = {
     "┴─O=O O=O─┴ з  \n"
 };
 
-#include "sl-coupler.h"
+#include "cars/coupler.h"
 
 int COLS, LINES;
+int sl_step = -2;
 coupler couplers[MAX_COUPLERS];
 int n_couplers = 0;
 
@@ -51,18 +49,22 @@ int main() {
     setupterm(NULL, STDOUT_FILENO, NULL);
     COLS = tigetnum("cols"); LINES = tigetnum("lines");
     int len = strlen(sl[0]), height = sizeof(sl)/sizeof(sl[0]);
-    int start_x = COLS, start_y = LINES - height - 1;
+    int start_x = (COLS + 1) & ~1, start_y = LINES - height - 1;
     char smoke[1024]; strcpy(smoke, sl[0]); sl[0] = smoke;
     CALL_COUPLERS(origin);
-    for (int x = start_x/2*2; x >= 0; x -= 2) {
+    int frames = 0;
+    for (int x = start_x/2*2; x >= 0 && sl_step; x += sl_step) {
         int maxcols = COLS - x;
         CALL_COUPLERS(arriving, x);
+        if (!sl_step && frames == 0)
+            return 1;
         for (int y = 0; y < height; y++)
             mvputns(start_y + y, x, sl[y], maxcols);
         CALL_COUPLERS(departed, x);
         fflush(stdout);
         strcat(smoke, " o");
         usleep(100000);
+        if (maxcols > 0) frames++;
     }
     CALL_COUPLERS(terminal);
 }

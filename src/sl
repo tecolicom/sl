@@ -111,7 +111,7 @@ slowout() {
 # Argument parsing
 ##############################################################################
 
-VERSION=v2026.1
+VERSION=v2026.2
 global_opts="dhn"
 
 debug_flag=0
@@ -150,12 +150,14 @@ esac
 
 # Run sl-2026 with sweep detection and optional flags.
 #   -a  Sweep the entire screen (SL_SWEEP_ALL)
+#   -s  Stop when hitting text (SL_STOP_COL)
 sl_2026() {
-    local OPTIND opt sweep_all=0
-    while getopts ":${global_opts}a-:" opt; do
+    local OPTIND opt sweep_all=0 stop_flag=0
+    while getopts ":${global_opts}as-:" opt; do
         case "$opt" in
             [$global_opts]) ;;
             a) sweep_all=1 ;;
+            s) stop_flag=1 ;;
             -) handle_long_opt "$OPTARG" ;;
             '?') error "unknown option: -$OPTARG" ;;
         esac
@@ -181,7 +183,11 @@ sl_2026() {
             "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col"
         ((dryrun)) && { echo; return; }
     fi
-    SL_SWEEP_COL=$clear_col exec sl-$version "$@"
+    export SL_SWEEP_COL=$clear_col
+    if ((stop_flag)); then
+        export SL_STOP_COL=$clear_col
+    fi
+    exec sl-$version "$@"
 }
 
 # Run sl-1985 via script(1) with per-character delay output.

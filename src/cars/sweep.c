@@ -1,16 +1,15 @@
-#include <stdlib.h>
-#include <string.h>
-#include "sl-coupler.h"
+#include "coupler.h"
 
 typedef struct {
     char dch2[20];
     int clear_col;
+    int stop_col;
     int sweep_all;
     int start_y;
     int height;
 } sweep_ctx;
 
-static void sweep_origin(coupler *cpl) {
+static void origin(coupler *cpl) {
     sweep_ctx *ctx = malloc(sizeof(sweep_ctx));
     memset(ctx, 0, sizeof(*ctx));
 
@@ -18,17 +17,21 @@ static void sweep_origin(coupler *cpl) {
     if (dch2p != NULL)
         strcpy(ctx->dch2, dch2p);
 
-    char *env = getenv("SL_SWEEP_COL");
-    ctx->clear_col = (env && *env) ? atoi(env) : 0;
-    ctx->sweep_all = getenv("SL_SWEEP_ALL") != NULL;
+    ctx->clear_col = sl_option_int("SWEEP_COL", 0);
+    ctx->stop_col = sl_option_int("STOP_COL", -1);
+    ctx->sweep_all = sl_option_bool("SWEEP_ALL");
     ctx->height = 7;  /* SL art height */
     ctx->start_y = LINES - ctx->height - 1;
 
     cpl->ctx = ctx;
 }
 
-static void sweep_arriving(coupler *cpl, int x) {
+static void arriving(coupler *cpl, int x) {
     sweep_ctx *ctx = cpl->ctx;
+    if (ctx->stop_col >= 0 && x <= ctx->stop_col) {
+        sl_step = 0;
+        return;
+    }
     if (x > ctx->clear_col) return;
 
     int y0 = ctx->sweep_all ? 0 : ctx->start_y;
@@ -37,14 +40,14 @@ static void sweep_arriving(coupler *cpl, int x) {
         mvprintw(y, 0, "%s", ctx->dch2);
 }
 
-static void sweep_terminal(coupler *cpl) {
+static void terminal(coupler *cpl) {
     free(cpl->ctx);
 }
 
 coupler sweep_coupler(void) {
     return (coupler){
-        .origin = sweep_origin,
-        .arriving = sweep_arriving,
-        .terminal = sweep_terminal,
+        .origin = origin,
+        .arriving = arriving,
+        .terminal = terminal,
     };
 }

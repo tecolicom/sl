@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
 #include "coupler.h"
 
 typedef struct {
@@ -19,11 +17,9 @@ static void sweep_origin(coupler *cpl) {
     if (dch2p != NULL)
         strcpy(ctx->dch2, dch2p);
 
-    char *env = getenv("SL_SWEEP_COL");
-    ctx->clear_col = (env && *env) ? atoi(env) : 0;
-    env = getenv("SL_STOP_COL");
-    ctx->stop_col = (env && *env) ? atoi(env) : -1;
-    ctx->sweep_all = getenv("SL_SWEEP_ALL") != NULL;
+    ctx->clear_col = sl_option_int("SWEEP_COL", 0);
+    ctx->stop_col = sl_option_int("STOP_COL", -1);
+    ctx->sweep_all = sl_option_bool("SWEEP_ALL");
     ctx->height = 7;  /* SL art height */
     ctx->start_y = LINES - ctx->height - 1;
 

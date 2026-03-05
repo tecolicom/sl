@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "coupler.h"
 
 /* Check if car "NAME" is enabled.
@@ -8,8 +5,8 @@
    If unset, falls back to the compile-time default. */
 int car_enabled(const char *name, int dflt) {
     char var[64];
-    snprintf(var, sizeof(var), "SL_CAR_%s", name);
-    char *val = getenv(var);
+    snprintf(var, sizeof(var), "CAR_%s", name);
+    const char *val = sl_option(var);
     if (val == NULL) return dflt;
     return strcmp(val, "0") != 0;
 }

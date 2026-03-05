@@ -6,10 +6,7 @@
  * Without SL_SWEEP_COL, sweeps only at x=0 (last frame).
  */
 #include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <term.h>
+#include "sl.h"
 
 /* Print at (y, x) but limit output to n display columns.
    All SL art characters are single-width, so 1 codepoint = 1 column. */

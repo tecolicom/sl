@@ -21,7 +21,7 @@
  *    - departed: called each frame after SL is drawn, before fflush (発車)
  *      - x: current SL position (decreasing from COLS toward 0)
  *    - terminal: called once after the animation loop (終着駅)
- *    - COLS, LINES: available as globals (extern in cars/coupler.h)
+ *    - COLS, LINES: available as globals (extern in sl.h)
  *    - sl_step: set to 0 to stop, +2 to reverse (default -2)
  *    - Any callback may be NULL if not needed.
  *
@@ -53,16 +53,7 @@
 #ifndef SL_COUPLER_H
 #define SL_COUPLER_H
 
-#include <stdio.h>
-#include <term.h>
-
-static inline void mvprintw(int y, int x, const char *fmt, const char *str) {
-    tputs(tparm(tgoto(cursor_address, x, y)), 1, putchar);
-    printf(fmt, str);
-}
-
-extern int COLS, LINES;
-extern int sl_step;
+#include "../sl.h"
 
 typedef struct coupler {
     void *ctx;

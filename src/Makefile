@@ -35,7 +35,7 @@ SL2026_CAR_NAMES := $(foreach c,$(SL2026_CARS),$(firstword $(subst =, ,$(c))))
 SL2026_CAR_SRCS  := cars/couplers.c \
 	$(shell echo '$(SL2026_CAR_NAMES)' | tr A-Z a-z | sed 's/[^ ]*/cars\/&.c/g')
 
-sl-2026: sl-2026.c $(SL2026_CAR_SRCS) cars/coupler.h
+sl-2026: sl-2026.c $(SL2026_CAR_SRCS) sl.h cars/coupler.h
 	$(CC) $(NCURSES_CFLAGS) $(SL2026_CAR_FLAGS) -o $@ sl-2026.c $(SL2026_CAR_SRCS) $(NCURSES_LIBS)
 
 %: %.c

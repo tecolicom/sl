@@ -4,8 +4,8 @@
 .SH NAME
 sl \- sl runs across your terminal
 .SH SYNOPSIS
-\f[B]sl\f[R] [\f[B]\-dn\f[R]] [\f[I]version\f[R]|\f[I]subcommand\f[R]]
-[\f[B]\-as\f[R]]
+\f[B]sl\f[R] [\f[I]options\f[R]]
+[\f[I]version\f[R]|\f[I]subcommand\f[R]]
 .SH DESCRIPTION
 \f[B]sl\f[R] is a wrapper script that dispatches to versioned sl
 binaries.
@@ -46,7 +46,7 @@ Dry run.
 Show debug information and exit without running the train.
 .SH OPTIONS (2026 only)
 .TP
-\f[B]\-a\f[R]
+\f[B]\-a\f[R], \f[B]\(enall\f[R]
 Sweep the entire screen.
 Without this option, only the 7\-line area where the train runs is
 swept.
@@ -54,9 +54,23 @@ With \f[B]\-a\f[R], all screen lines are swept and the sweep start
 position is determined from the full screen content rather than just the
 train area.
 .TP
-\f[B]\-s\f[R]
+\f[B]\-s\f[R], \f[B]\(enstop\f[R]
 Stop the train when it reaches existing text on the screen instead of
 sweeping through it.
+.TP
+\f[B]\-t\f[R], \f[B]\(enstreak\f[R]
+Enable the streak effect on the bottom row (default).
+.TP
+\f[B]\-T\f[R], \f[B]\(ennostreak\f[R]
+Disable the streak effect.
+.TP
+\f[B]\-c\f[R], \f[B]\(encolor\f[R]=\f[I]MODE\f[R]
+Set color mode: \f[B]truecolor\f[R], \f[B]24bit\f[R], or \f[B]256\f[R].
+.TP
+\f[B]\-p\f[R], \f[B]\(enparam\f[R]=\f[I]KEY\f[R]=\f[I]VALUE\f[R]
+Set coupler parameter.
+For example, \f[B]\-p STREAK=rumble,reverse\f[R] enables rumble mode
+with reversed direction.
 .SH VERSIONS
 .TP
 \f[B]1985\f[R]
@@ -94,19 +108,42 @@ Show detailed sweep area analysis with visual output.
 \f[B]mark\f[R]
 Draw a visual marker at the sweep start column and print the column
 number.
-.SH ENVIRONMENT
-.TP
-\f[B]SL_SWEEP_COL\f[R]
-Passed internally to the sl\-2026 binary.
-Specifies the column at which sweeping begins.
-.TP
-\f[B]SL_STOP_COL\f[R]
-Passed internally to the sl\-2026 binary.
-Specifies the column at which the train stops.
-.TP
-\f[B]SL_SWEEP_ALL\f[R]
-Passed internally to the sl\-2026 binary.
-When set, sweeps all screen lines instead of just the train area.
+.SH COUPLERS
+Couplers are pluggable effect modules for the 2026 version.
+Each coupler can be disabled by setting its SL_CAR variable to 0.
+Coupler\-specific parameters can be set with the \f[B]\-p\f[R] option
+(e.g., \f[B]\-p STREAK=rumble,reverse\f[R]).
+.SS Sweep
+The sweep coupler deletes characters at the left edge as the train
+passes.
+Set \f[B]SL_CAR_SWEEP=0\f[R] to disable.
+.IP \(bu 2
+\f[B]SL_SWEEP_COL\f[R] \(em Column at which sweeping begins.
+.IP \(bu 2
+\f[B]SL_STOP_COL\f[R] \(em Column at which the train stops.
+.IP \(bu 2
+\f[B]SL_SWEEP_ALL\f[R] \(em Sweep all screen lines instead of just the
+train area.
+.SS Streak
+The streak coupler draws a glowing light bar on the bottom row.
+Set \f[B]SL_CAR_STREAK=0\f[R] to disable.
+.IP \(bu 2
+\f[B]SL_STREAK_RUMBLE\f[R] \(em Enable ▔/▀ thickness modulation
+(default: shimmer ▔ only).
+.IP \(bu 2
+\f[B]SL_STREAK_REVERSE\f[R] \(em Reverse direction (left\-to\-right).
+.SH TERMINAL TIPS
+The 2026 version uses Unicode box\-drawing and block characters whose
+East Asian Width property is \(lqAmbiguous\(rq.
+Terminals that treat ambiguous\-width characters as double\-width will
+cause visual glitches (line wrapping / \(lqderailment\(rq).
+Make sure to uncheck this setting:
+.IP \(bu 2
+\f[B]iTerm2\f[R]: Profiles → Text → Unicode → \f[B]Ambiguous characters
+are double\-width\f[R]
+.IP \(bu 2
+\f[B]Apple Terminal\f[R]: Profiles → Advanced → \f[B]Unicode East Asian
+Ambiguous characters are wide\f[R]
 .SH INSTALL
 .IP
 .EX

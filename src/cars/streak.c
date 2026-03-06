@@ -29,8 +29,9 @@ static void origin(coupler *cpl) {
     ctx->use_truecolor = ct &&
         (strcmp(ct, "truecolor") == 0 || strcmp(ct, "24bit") == 0);
 
-    const char *mode = sl_option("STREAK");
-    ctx->rumble = mode && strcmp(mode, "rumble") == 0;
+    ctx->rumble = sl_option_bool("STREAK_RUMBLE");
+    if (sl_option_bool("STREAK_REVERSE"))
+        ctx->scan_step = -ctx->scan_step;
 
     cpl->ctx = ctx;
 }

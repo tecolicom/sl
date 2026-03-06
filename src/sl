@@ -176,7 +176,10 @@ sl_2026() {
         export SL_CAR_STREAK=0
     fi
     if [[ ${param[STREAK]:-} ]]; then
-        export SL_STREAK=${param[STREAK]}
+        IFS=, read -ra _modes <<< "${param[STREAK]}"
+        for _m in "${_modes[@]}"; do
+            export "SL_STREAK_${_m^^}=1"
+        done
     fi
     if [[ $color ]]; then
         case $color in

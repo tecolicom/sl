@@ -4,7 +4,7 @@ sl - sl runs across your terminal
 
 # SYNOPSIS
 
-**sl** [**-dn**] [*version*|*subcommand*] [**-as**]
+**sl** [*options*] [*version*|*subcommand*]
 
 # DESCRIPTION
 
@@ -47,17 +47,34 @@ On unsupported terminals or platforms, the train always sweeps
 
 # OPTIONS (2026 only)
 
-- **-a**
+- **-a**, **--all**
 
   Sweep the entire screen.  Without this option, only the 7-line area
   where the train runs is swept.  With **-a**, all screen lines are
   swept and the sweep start position is determined from the full screen
   content rather than just the train area.
 
-- **-s**
+- **-s**, **--stop**
 
   Stop the train when it reaches existing text on the screen instead
   of sweeping through it.
+
+- **-t**, **--streak**
+
+  Enable the streak effect on the bottom row (default).
+
+- **-T**, **--nostreak**
+
+  Disable the streak effect.
+
+- **-c**, **--color**=*MODE*
+
+  Set color mode: **truecolor**, **24bit**, or **256**.
+
+- **-p**, **--param**=*KEY*=*VALUE*
+
+  Set coupler parameter.  For example, **-p STREAK=rumble,reverse**
+  enables rumble mode with reversed direction.
 
 # VERSIONS
 
@@ -107,32 +124,29 @@ sweep detection mechanism.
   Draw a visual marker at the sweep start column and print
   the column number.
 
-# ENVIRONMENT
+# COUPLERS
 
-- **SL\_SWEEP\_COL**
+Couplers are pluggable effect modules for the 2026 version.
+Each coupler can be disabled by setting its SL\_CAR variable to 0.
+Coupler-specific parameters can be set with the **-p** option
+(e.g., **-p STREAK=rumble,reverse**).
 
-  Passed internally to the sl-2026 binary.  Specifies the column at
-  which sweeping begins.
+## Sweep
 
-- **SL\_STOP\_COL**
+The sweep coupler deletes characters at the left edge as the
+train passes.  Set **SL\_CAR\_SWEEP=0** to disable.
 
-  Passed internally to the sl-2026 binary.  Specifies the column at
-  which the train stops.
+- **SL\_SWEEP\_COL** — Column at which sweeping begins.
+- **SL\_STOP\_COL** — Column at which the train stops.
+- **SL\_SWEEP\_ALL** — Sweep all screen lines instead of just the train area.
 
-- **SL\_SWEEP\_ALL**
+## Streak
 
-  Passed internally to the sl-2026 binary.  When set, sweeps all
-  screen lines instead of just the train area.
+The streak coupler draws a glowing light bar on the bottom row.
+Set **SL\_CAR\_STREAK=0** to disable.
 
-- **SL\_CAR\_STREAK**
-
-  Control the streak effect on the bottom row (2026 only).
-  Set to **0** to disable, or any other value to enable.
-
-- **SL\_STREAK**
-
-  Set the streak mode.  **rumble** for ▔/▀ thickness modulation,
-  otherwise the default shimmer mode (▔ only) is used.
+- **SL\_STREAK\_RUMBLE** — Enable ▔/▀ thickness modulation (default: shimmer ▔ only).
+- **SL\_STREAK\_REVERSE** — Reverse direction (left-to-right).
 
 # TERMINAL TIPS
 

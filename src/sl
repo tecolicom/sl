@@ -5,10 +5,10 @@
 # Usage: sl [options] [VERSION|SUBCOMMAND]
 #
 # Options:
+#   -w/-W, --sweep/--no-sweep   Enable/disable sweep (2026, default: on)
 #   -a, --all            Sweep the entire screen (2026)
-#   -s, --stop           Stop at existing text instead of sweeping (2026)
-#   -t, --streak         Enable streak effect (2026, default)
-#   -T, --no-streak      Disable streak effect (2026)
+#   -s/-S, --stop/--no-stop    Stop/don't stop at text (2026)
+#   -t/-T, --streak/--no-streak  Enable/disable streak (2026, default: on)
 #   -c, --color=MODE     Color mode: truecolor/24bit/256
 #   -p, --param=K=V      Set coupler parameter (e.g., STREAK=rumble)
 #   -d, --debug          Show debug info on the last line before running
@@ -59,6 +59,8 @@ error() { warn "$@"; exit 1; }
 # Callback functions for getoptlong
 help()    { sed -n '3,/^$/{ s/^# \{0,1\}//; p; }' "$self"; exit 0; }
 version() { echo "$VERSION"; exit 0; }
+nosweep()  { [[ $2 ]] && sweep=  || sweep=1;  }
+nostop()   { [[ $2 ]] && stop=   || stop=1;   }
 nostreak() { [[ $2 ]] && streak= || streak=1; }
 
 # Find the latest available version
@@ -117,8 +119,11 @@ declare -A OPTS=(
     [  version |    !  # show version           ]=
     [    debug | d     # debug mode             ]=
     [   dryrun | n     # dry-run mode           ]=
+    [    sweep | w     # enable sweep (2026)    ]=1
+    [  nosweep | W  !  # disable sweep          ]=
     [      all | a     # sweep all (2026)       ]=
     [     stop | s     # stop at text           ]=
+    [   nostop | S  !  # disable stop           ]=
     [   streak | t     # enable streak (2026)   ]=1
     [ nostreak | T  !  # disable streak         ]=
     [    color | c  :  # color mode             ]=
@@ -166,7 +171,12 @@ sl_2026() {
             "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col"
         [[ $dryrun ]] && { echo; return; }
     fi
-    export SL_SWEEP_COL=$clear_col
+    if [[ $sweep ]]; then
+        export SL_CAR_SWEEP=1
+        export SL_SWEEP_COL=$clear_col
+    else
+        export SL_CAR_SWEEP=0
+    fi
     if [[ $stop ]]; then
         export SL_STOP_COL=$clear_col
     fi

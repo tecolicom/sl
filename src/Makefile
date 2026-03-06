@@ -46,7 +46,7 @@ build: sl.1
 	grep '^\.TH' sl.1
 
 sl.1: README.md deflist.lua
-	pandoc -s -t man -L deflist.lua \
+	pandoc -s -f markdown-smart -t man -L deflist.lua \
 		-M title=SL -M section=1 -M date="$(YEAR)" -M header="sl" \
 		-V footer="$(NAME) $(VER)" \
 		README.md -o $@

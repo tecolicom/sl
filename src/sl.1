@@ -46,31 +46,31 @@ Dry run.
 Show debug information and exit without running the train.
 .SH OPTIONS (2026 only)
 .TP
-\f[B]\-a\f[R], \f[B]\(enall\f[R]
-Sweep the entire screen.
-Without this option, only the 7\-line area where the train runs is
-swept.
-With \f[B]\-a\f[R], all screen lines are swept and the sweep start
-position is determined from the full screen content rather than just the
-train area.
-.TP
-\f[B]\-s\f[R], \f[B]\(enstop\f[R]
-Stop the train when it reaches existing text on the screen instead of
-sweeping through it.
-.TP
-\f[B]\-t\f[R], \f[B]\(enstreak\f[R]
-Enable the streak effect on the bottom row (default).
-.TP
-\f[B]\-T\f[R], \f[B]\(ennostreak\f[R]
-Disable the streak effect.
-.TP
-\f[B]\-c\f[R], \f[B]\(encolor\f[R]=\f[I]MODE\f[R]
+\f[B]\-c\f[R], \f[B]\-\-color\f[R]=\f[I]MODE\f[R]
 Set color mode: \f[B]truecolor\f[R], \f[B]24bit\f[R], or \f[B]256\f[R].
 .TP
-\f[B]\-p\f[R], \f[B]\(enparam\f[R]=\f[I]KEY\f[R]=\f[I]VALUE\f[R]
-Set coupler parameter.
-For example, \f[B]\-p STREAK=rumble,reverse\f[R] enables rumble mode
-with reversed direction.
+\f[B]\-p\f[R], \f[B]\-\-param\f[R]=\f[I]KEY\f[R]=\f[I]VALUE\f[R]
+Set coupler parameter (see COUPLERS for available keys).
+.SS Sweep
+.TP
+\f[B]\-w\f[R]/\f[B]\-W\f[R], \f[B]\-\-sweep\f[R]/\f[B]\-\-no\-sweep\f[R]
+Enable or disable the sweep effect (default: on).
+.TP
+\f[B]\-a\f[R], \f[B]\-\-all\f[R]
+Sweep the entire screen instead of just the 7\-line train area.
+.TP
+\f[B]\-s\f[R]/\f[B]\-S\f[R], \f[B]\-\-stop\f[R]/\f[B]\-\-no\-stop\f[R]
+Stop or don\(aqt stop the train at existing text (default: off).
+.SS Streak
+.TP
+\f[B]\-t\f[R]/\f[B]\-T\f[R], \f[B]\-\-streak\f[R]/\f[B]\-\-no\-streak\f[R]
+Enable or disable the streak effect on the bottom row (default: on).
+.TP
+\f[B]\-p STREAK=\f[R]{\f[B]rumble\f[R],\f[B]reverse\f[R]}
+Set streak mode.
+\f[B]rumble\f[R] enables thickness modulation, \f[B]reverse\f[R]
+reverses the direction.
+Combine with commas (e.g., \f[B]\-p STREAK=rumble,reverse\f[R]).
 .SH VERSIONS
 .TP
 \f[B]1985\f[R]
@@ -128,15 +128,14 @@ train area.
 The streak coupler draws a glowing light bar on the bottom row.
 Set \f[B]SL_CAR_STREAK=0\f[R] to disable.
 .IP \(bu 2
-\f[B]SL_STREAK_RUMBLE\f[R] \(em Enable ▔/▀ thickness modulation
-(default: shimmer ▔ only).
+\f[B]SL_STREAK_RUMBLE\f[R] \(em Enable ▔/▀ thickness modulation.
 .IP \(bu 2
 \f[B]SL_STREAK_REVERSE\f[R] \(em Reverse direction (left\-to\-right).
 .SH TERMINAL TIPS
 The 2026 version uses Unicode box\-drawing and block characters whose
-East Asian Width property is \(lqAmbiguous\(rq.
+East Asian Width property is \(dqAmbiguous\(dq.
 Terminals that treat ambiguous\-width characters as double\-width will
-cause visual glitches (line wrapping / \(lqderailment\(rq).
+cause visual glitches (line wrapping / \(dqderailment\(dq).
 Make sure to uncheck this setting:
 .IP \(bu 2
 \f[B]iTerm2\f[R]: Profiles → Text → Unicode → \f[B]Ambiguous characters
@@ -153,14 +152,14 @@ brew install sl\-classic
 .SH SEE ALSO
 ls(1)
 .IP \(bu 2
-Kazumasa Utashiro, \(lqJUNET and Hacker Culture\(rq, IPSJ Magazine,
+Kazumasa Utashiro, \(dqJUNET and Hacker Culture\(dq, IPSJ Magazine,
 Vol.66, No.8, 2025.
-Special issue: \(lqHow the Internet Began in Japan \(en 40 Years of
-JUNET\(rq
+Special issue: \(dqHow the Internet Began in Japan \-\- 40 Years of
+JUNET\(dq
 .IP \(bu 2
 \c
 .UR https://tecolicom.github.io/sl/junet40th/junet40th.html
-40 Years of the sl Command \(en A Genealogy of Useless Things
+40 Years of the sl Command \-\- A Genealogy of Useless Things
 .UE \c
 \ (JUNET 40th Anniversary Symposium, 2024)
 .IP \(bu 2
@@ -190,3 +189,5 @@ BSD 2\-Clause License
 Kazumasa Utashiro \c
 .UR https://github.com/tecolicom/sl
 .UE \c
+.PP
+AIKAWA, Shigechika (streak effect)

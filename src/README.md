@@ -47,34 +47,39 @@ On unsupported terminals or platforms, the train always sweeps
 
 # OPTIONS (2026 only)
 
-- **-a**, **--all**
-
-  Sweep the entire screen.  Without this option, only the 7-line area
-  where the train runs is swept.  With **-a**, all screen lines are
-  swept and the sweep start position is determined from the full screen
-  content rather than just the train area.
-
-- **-s**, **--stop**
-
-  Stop the train when it reaches existing text on the screen instead
-  of sweeping through it.
-
-- **-t**, **--streak**
-
-  Enable the streak effect on the bottom row (default).
-
-- **-T**, **--nostreak**
-
-  Disable the streak effect.
-
 - **-c**, **--color**=*MODE*
 
   Set color mode: **truecolor**, **24bit**, or **256**.
 
 - **-p**, **--param**=*KEY*=*VALUE*
 
-  Set coupler parameter.  For example, **-p STREAK=rumble,reverse**
-  enables rumble mode with reversed direction.
+  Set coupler parameter (see COUPLERS for available keys).
+
+## Sweep
+
+- **-w**/**-W**, **--sweep**/**--no-sweep**
+
+  Enable or disable the sweep effect (default: on).
+
+- **-a**, **--all**
+
+  Sweep the entire screen instead of just the 7-line train area.
+
+- **-s**/**-S**, **--stop**/**--no-stop**
+
+  Stop or don't stop the train at existing text (default: off).
+
+## Streak
+
+- **-t**/**-T**, **--streak**/**--no-streak**
+
+  Enable or disable the streak effect on the bottom row (default: on).
+
+- **-p STREAK=**{**rumble**,**reverse**}
+
+  Set streak mode.  **rumble** enables thickness modulation,
+  **reverse** reverses the direction.  Combine with commas
+  (e.g., **-p STREAK=rumble,reverse**).
 
 # VERSIONS
 
@@ -145,7 +150,7 @@ train passes.  Set **SL\_CAR\_SWEEP=0** to disable.
 The streak coupler draws a glowing light bar on the bottom row.
 Set **SL\_CAR\_STREAK=0** to disable.
 
-- **SL\_STREAK\_RUMBLE** — Enable ▔/▀ thickness modulation (default: shimmer ▔ only).
+- **SL\_STREAK\_RUMBLE** — Enable ▔/▀ thickness modulation.
 - **SL\_STREAK\_REVERSE** — Reverse direction (left-to-right).
 
 # TERMINAL TIPS
@@ -188,3 +193,5 @@ BSD 2-Clause License
 
 Kazumasa Utashiro
 <https://github.com/tecolicom/sl>
+
+AIKAWA, Shigechika (streak effect)

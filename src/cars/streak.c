@@ -14,10 +14,10 @@ typedef struct {
     int use_truecolor;
     int use_bg;     /* Apple Terminal: background-colored spaces */
     int rumble;     /* ▔/▀ thickness modulation */
-} rail_ctx;
+} streak_ctx;
 
 static void origin(coupler *cpl) {
-    rail_ctx *ctx = malloc(sizeof(rail_ctx));
+    streak_ctx *ctx = malloc(sizeof(streak_ctx));
     memset(ctx, 0, sizeof(*ctx));
     ctx->row = LINES - 1;
     ctx->scan_pos = 0;
@@ -30,7 +30,7 @@ static void origin(coupler *cpl) {
     ctx->use_truecolor = ct &&
         (strcmp(ct, "truecolor") == 0 || strcmp(ct, "24bit") == 0);
 
-    const char *mode = sl_option("CAR_RAIL");
+    const char *mode = sl_option("STREAK");
     ctx->rumble = mode && strcmp(mode, "rumble") == 0;
 
     const char *tp = getenv("TERM_PROGRAM");
@@ -40,14 +40,14 @@ static void origin(coupler *cpl) {
     cpl->ctx = ctx;
 }
 
-/* Rail effect on the bottom row.
+/* Streak effect on the bottom row.
    Asymmetric gradient: sharp leading edge, long trailing tail.
    Two modes: "shimmer" (thin ▔ only, default) and
-   "rumble" (▔/▀ thickness modulation via SL_CAR_RAIL=rumble).
+   "rumble" (▔/▀ thickness modulation via SL_STREAK=rumble).
    Apple Terminal: background-colored spaces (▔/▀ are ambiguous-width).
    Falls back to 256-color when COLORTERM is not truecolor/24bit. */
 static void departed(coupler *cpl, int x) {
-    rail_ctx *ctx = cpl->ctx;
+    streak_ctx *ctx = cpl->ctx;
     int cols = COLS;
     int center = ctx->scan_pos;
     int dir = ctx->scan_step;
@@ -105,7 +105,7 @@ static void departed(coupler *cpl, int x) {
 }
 
 static void terminal(coupler *cpl) {
-    rail_ctx *ctx = cpl->ctx;
+    streak_ctx *ctx = cpl->ctx;
     printf("\033[0m");
     tputs(tparm(tgoto(cursor_address, 0, ctx->row)), 1, putchar);
     tputs(tigetstr("el"), 1, putchar);
@@ -113,7 +113,7 @@ static void terminal(coupler *cpl) {
     free(ctx);
 }
 
-coupler rail_coupler(void) {
+coupler streak_coupler(void) {
     return (coupler){
         .origin   = origin,
         .departed = departed,

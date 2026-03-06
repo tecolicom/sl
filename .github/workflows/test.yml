@@ -29,11 +29,20 @@ jobs:
             echo "::warning::sl-1985 build failed (expected on some platforms)"
           fi
 
+      - name: Install bash (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bash
+
       - name: Shell script syntax check
         run: |
-          bash -n src/sl
           bash -n src/sl-screen.sh
           bash -n src/sl-sweep.sh
+          # sl requires bash 4+ (declare -A)
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            $(brew --prefix)/bin/bash -n src/sl
+          else
+            bash -n src/sl
+          fi
 
       - name: Basic option tests
         working-directory: src

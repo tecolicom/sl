@@ -29,7 +29,7 @@ sl-1985: sl.c
 # List as NAME=1 (default on) or NAME=0 (default off).
 # This auto-generates -DCAR_NAME=x flags and cars/name.c source list.
 # Each car can be overridden at runtime via SL_CAR_NAME env var.
-SL2026_CARS      := SWEEP=1 NULL=0
+SL2026_CARS      := SWEEP=1 NULL=0 STREAK=0
 SL2026_CAR_FLAGS := $(addprefix -DCAR_,$(SL2026_CARS))
 SL2026_CAR_NAMES := $(foreach c,$(SL2026_CARS),$(firstword $(subst =, ,$(c))))
 SL2026_CAR_SRCS  := cars/couplers.c \
@@ -52,39 +52,39 @@ sl.1: README.md deflist.lua
 		README.md -o $@
 
 check:
-	@$(GIT) diff --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!Changes' \
-	 && $(GIT) diff --cached --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!Changes' \
+	@$(GIT) diff --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!src/Changes' \
+	 && $(GIT) diff --cached --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!src/Changes' \
 		|| { echo "ERROR: uncommitted changes"; exit 1; }
 	echo "Working tree is clean"
 
 check-changes:
-	@awk '/\{\{.NEXT\}\}/{f=1; next} f && /^[[:space:]]+[^[:space:]]/{ok=1; exit} f && /^[^[:space:]]/{exit 1} END{exit(ok ? 0 : 1)}' ../Changes \
+	@awk '/\{\{.NEXT\}\}/{f=1; next} f && /^[[:space:]]+[^[:space:]]/{ok=1; exit} f && /^[^[:space:]]/{exit 1} END{exit(ok ? 0 : 1)}' Changes \
 		|| { echo "ERROR: No entries under {{\$$NEXT}} in Changes"; exit 1; }
 	echo "Changes OK"
 
 release:
 	@set -e
 	test -n "$(VERSION)" || { echo "ERROR: VERSION required: make release VERSION=v2026"; exit 1; }
-	$(GIT) diff --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!Changes' \
-	 && $(GIT) diff --cached --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!Changes' \
+	$(GIT) diff --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!src/Changes' \
+	 && $(GIT) diff --cached --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!src/Changes' \
 		|| { echo "ERROR: uncommitted changes"; exit 1; }
 	echo "$(VERSION)" | grep -qE '^v[0-9]' \
 		|| { echo "ERROR: VERSION must start with v"; exit 1; }
 	! $(GIT) tag -l | grep -qx "$(VERSION)" \
 		|| { echo "ERROR: tag $(VERSION) already exists"; exit 1; }
-	if grep -q '^$(VERSION) ' ../Changes; then
+	if grep -q '^$(VERSION) ' Changes; then
 		echo "Changes already has $(VERSION) entry, skipping rewrite"
 	else
-		awk '/\{\{.NEXT\}\}/{f=1; next} f && /^[[:space:]]+[^[:space:]]/{ok=1; exit} f && /^[^[:space:]]/{exit 1} END{exit(ok ? 0 : 1)}' ../Changes \
+		awk '/\{\{.NEXT\}\}/{f=1; next} f && /^[[:space:]]+[^[:space:]]/{ok=1; exit} f && /^[^[:space:]]/{exit 1} END{exit(ok ? 0 : 1)}' Changes \
 			|| { echo "ERROR: No entries under {{\$$NEXT}} in Changes"; exit 1; }
-		sed -i '' 's/{{\$$NEXT}}/{{\$$NEXT}}\'$$'\n''\'$$'\n''$(VERSION) $(DATE)/' ../Changes
+		sed -i '' 's/{{\$$NEXT}}/{{\$$NEXT}}\'$$'\n''\'$$'\n''$(VERSION) $(DATE)/' Changes
 	fi
 	echo "Releasing $(VERSION) (current: $(CURRENT))"
 	sed -i '' 's/^VERSION=.*/VERSION=$(VERSION)/' sl
 	rm -f sl.1
 	$(MAKE) build VER=$(VERSION)
 	$(GIT) add -u
-	msg="Checking in changes prior to tagging of version $(VERSION)."$$'\n\n'"Changelog diff is:"$$'\n\n'"$$($(GIT) --no-pager diff --cached -- Changes)"
+	msg="Checking in changes prior to tagging of version $(VERSION)."$$'\n\n'"Changelog diff is:"$$'\n\n'"$$($(GIT) --no-pager diff --cached -- src/Changes)"
 	echo "$$msg"
 	echo "---"
 	$(GIT) --no-pager diff --cached --stat

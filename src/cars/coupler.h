@@ -76,5 +76,6 @@ void couple(void);
 int car_enabled(const char *name, int dflt);
 coupler null_coupler(void);
 coupler sweep_coupler(void);
+coupler streak_coupler(void);
 
 #endif

@@ -1,20 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# sl - sl wrapper script
+# sl - sl runs across your terminal
 #
-# Dispatches to versioned sl binaries (sl-1985, sl-2010, sl-2023, sl-2026).
-# The sl-2026 version detects existing text on the terminal screen and
-# begins sweeping (pushing text off via dch2) only when the train reaches it.
-#
-# Usage: sl [-dn] [VERSION|SUBCOMMAND] [-as]
+# Usage: sl [-dnas] [VERSION|SUBCOMMAND]
 #
 # Options:
-#   -d          Show debug info on the last line before running
-#   -n          Dry run (show debug info and exit)
-#
-# Version-specific options (sl 2026):
-#   -a          Sweep the entire screen
-#   -s          Stop at existing text instead of sweeping
+#   -a, --all      Sweep the entire screen (2026)
+#   -s, --stop     Stop at existing text instead of sweeping (2026)
+#   -d, --debug    Show debug info on the last line before running
+#   -n, --dryrun   Dry run (show debug info and exit)
+#   -h, --help     Show help
+#       --version  Show version
 #
 # Subcommands:
 #   capture     Dump captured screen text
@@ -22,6 +18,11 @@
 #   clear-col   Print the column where sweeping should start
 #   debug       Show detailed sweep area analysis
 #   mark        Draw a visual marker at the sweep start column
+#
+# Versions:
+#   2023        Unicode art version, always sweeps
+#   2010        Direct terminal control version
+#   1985        Original curses version with retro delay
 
 ##############################################################################
 # Setup
@@ -51,20 +52,9 @@ PATH=$bindir:$PATH
 warn()  { echo "sl: $*" >&2; }
 error() { warn "$@"; exit 1; }
 
-# Show help and exit
-show_help() {
-    man sl 2>/dev/null || echo "Usage: sl [-dna] [version|subcommand] [options]"
-    exit 0
-}
-
-# Handle a long option from getopts -: pattern
-handle_long_opt() {
-    case "$1" in
-        help)    show_help ;;
-        version) echo "$VERSION"; exit 0 ;;
-        *)       error "unknown option: --$1" ;;
-    esac
-}
+# Callback functions for getoptlong
+help()    { sed -n '3,/^$/{ s/^# \{0,1\}//; p; }' "$self"; exit 0; }
+version() { echo "$VERSION"; exit 0; }
 
 # Find the latest available version
 resolve_latest() {
@@ -114,23 +104,19 @@ slowout() {
 ##############################################################################
 
 VERSION=v2026.2
-global_opts="dhn"
+USAGE="sl [-dnas] [VERSION|SUBCOMMAND]"
 
-debug_flag=0
-dryrun=0
-passthru=()
-OPTIND=1
-while getopts ":${global_opts}-:" opt; do
-    case "$opt" in
-        d) debug_flag=1 ;;
-        h) show_help ;;
-        n) dryrun=1 ;;
-        -) handle_long_opt "$OPTARG" ;;
-        '?') passthru+=("-$OPTARG") ;;
-    esac
-done
-shift $((OPTIND - 1))
-set -- "${passthru[@]}" "$@"
+declare -A OPTS=(
+    [&USAGE]="$USAGE"
+    [    help | h  !  # show help         ]=
+    [ version |    !  # show version      ]=
+    [   debug | d     # debug mode        ]=
+    [  dryrun | n     # dry-run mode      ]=
+    [     all | a     # sweep all (2026)  ]=
+    [    stop | s     # stop at text      ]=
+)
+
+. getoptlong.sh OPTS "$@"
 
 subcmd=${1:-}
 case "$subcmd" in
@@ -150,28 +136,14 @@ esac
 # Version-specific functions
 ##############################################################################
 
-# Run sl-2026 with sweep detection and optional flags.
-#   -a  Sweep the entire screen (SL_SWEEP_ALL)
-#   -s  Stop when hitting text (SL_STOP_COL)
+# Run sl-2026 with sweep detection.
 sl_2026() {
-    local OPTIND opt sweep_all=0 stop_flag=0
-    while getopts ":${global_opts}as-:" opt; do
-        case "$opt" in
-            [$global_opts]) ;;
-            a) sweep_all=1 ;;
-            s) stop_flag=1 ;;
-            -) handle_long_opt "$OPTARG" ;;
-            '?') error "unknown option: -$OPTARG" ;;
-        esac
-    done
-    shift $((OPTIND - 1))
-
     . sl-sweep.sh
-    if ((sweep_all)); then
+    if [[ $all ]]; then
         export SL_SWEEP_ALL=1
     fi
     local clear_col=9999
-    if ((sweep_all)); then
+    if [[ $all ]]; then
         col=$(get_visible_screen | calc_max_display_col)
     else
         col=$(calc_clear_col)
@@ -179,14 +151,14 @@ sl_2026() {
     if [[ -n "$col" ]] && ((col >= 0)); then
         clear_col=$col
     fi
-    if ((debug_flag || dryrun)); then
+    if [[ $debug || $dryrun ]]; then
         get_terminal_size
         printf "========== %s %s %s %sx%s %s" \
             "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col"
-        ((dryrun)) && { echo; return; }
+        [[ $dryrun ]] && { echo; return; }
     fi
     export SL_SWEEP_COL=$clear_col
-    if ((stop_flag)); then
+    if [[ $stop ]]; then
         export SL_STOP_COL=$clear_col
     fi
     exec sl-$version "$@"

@@ -2,14 +2,14 @@
 
 # sl - sl runs across your terminal
 #
-# Usage: sl [options] [VERSION|SUBCOMMAND]
+# Usage: sl [-wWsStTdn] [-a name] [-C] [-c mode] [-p K=V] [VERSION|SUBCOMMAND]
 #
 # Options:
 #   -w/-W, --sweep/--no-sweep   Enable/disable sweep (2026, default: on)
-#   -a, --all            Sweep the entire screen (2026)
+#   -C, --clear          Sweep the entire screen (2026)
 #   -s/-S, --stop/--no-stop    Stop/don't stop at text (2026)
 #   -t/-T, --streak/--no-streak  Enable/disable streak (2026, default: on)
-#   -A, --art=NAME       Animation art (2026, default: sl, "?" to list)
+#   -a, --art=NAME       Animation art (2026, default: sl, "?" to list, SL_ART)
 #   -c, --color=MODE     Color mode: truecolor/24bit/256
 #   -p, --param=K=V      Set coupler parameter (e.g., STREAK=rumble)
 #   -d, --debug          Show debug info on the last line before running
@@ -131,12 +131,12 @@ declare -A OPTS=(
     [   dryrun | n     # dry-run mode           ]=
     [    sweep | w     # enable sweep (2026)    ]=1
     [  nosweep | W  !  # disable sweep          ]=
-    [      all | a     # sweep all (2026)       ]=
+    [    clear | C     # sweep all (2026)       ]=
     [     stop | s     # stop at text           ]=
     [   nostop | S  !  # disable stop           ]=
     [   streak | t     # enable streak (2026)   ]=1
     [ nostreak | T  !  # disable streak         ]=
-    [      art | A  :  # animation art (2026)    ]=
+    [      art | a  :  # animation art (2026)    ]=
     [    color | c  :  # color mode             ]=
     [    param | p  %  # coupler parameter      ]=
 )
@@ -164,11 +164,11 @@ esac
 # Run sl-2026 with sweep detection.
 sl_2026() {
     load_sweep
-    if [[ $all ]]; then
+    if [[ $clear ]]; then
         export SL_SWEEP_ALL=1
     fi
     local clear_col=9999
-    if [[ $all ]]; then
+    if [[ $clear ]]; then
         col=$(get_visible_screen | calc_max_display_col)
     else
         col=$(calc_clear_col)
@@ -262,7 +262,7 @@ case "$subcmd" in
 esac
 
 ##############################################################################
-# Art list (-A? / art-list)
+# Art list (-a? / art-list)
 ##############################################################################
 
 if [[ $art == '?' ]]; then

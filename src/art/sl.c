@@ -1,5 +1,5 @@
 /*
- * art/sl.c - SL (Steam Locomotive) animation
+ * art/sl.c - SL animation
  */
 
 #include "art.h"

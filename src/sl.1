@@ -4,13 +4,109 @@
 .SH NAME
 sl \- sl runs across your terminal
 .SH SYNOPSIS
-\f[B]sl\f[R] [\f[I]options\f[R]]
-[\f[I]version\f[R]|\f[I]subcommand\f[R]]
+\f[B]sl\f[R] [\f[B]\-wWsStTdn\f[R]] [\f[B]\-a\f[R] \f[I]name\f[R]]
+[\f[B]\-C\f[R]] [\f[B]\-c\f[R] \f[I]mode\f[R]] [\f[B]\-p\f[R]
+\f[I]K=V\f[R]] [\f[I]VERSION\f[R]|\f[I]SUBCOMMAND\f[R]]
+.PP
+\f[B]Options:\f[R]
+.PD 0
+.P
+.PD
+\f[B]\-w\f[R]/\f[B]\-W\f[R], \f[B]\-\-sweep\f[R]/\f[B]\-\-no\-sweep\f[R]
+\(em Enable/disable sweep (2026, default: on)
+.PD 0
+.P
+.PD
+\f[B]\-C\f[R], \f[B]\-\-clear\f[R] \(em Sweep the entire screen (2026)
+.PD 0
+.P
+.PD
+\f[B]\-s\f[R]/\f[B]\-S\f[R], \f[B]\-\-stop\f[R]/\f[B]\-\-no\-stop\f[R]
+\(em Stop/don\(aqt stop at text (2026)
+.PD 0
+.P
+.PD
+\f[B]\-t\f[R]/\f[B]\-T\f[R],
+\f[B]\-\-streak\f[R]/\f[B]\-\-no\-streak\f[R] \(em Enable/disable streak
+(2026, default: on)
+.PD 0
+.P
+.PD
+\f[B]\-a\f[R], \f[B]\-\-art\f[R]=\f[I]NAME\f[R] \(em Animation art
+(2026, default: sl, \(dq?\(dq to list)
+.PD 0
+.P
+.PD
+\f[B]\-c\f[R], \f[B]\-\-color\f[R]=\f[I]MODE\f[R] \(em Color mode:
+truecolor/24bit/256
+.PD 0
+.P
+.PD
+\f[B]\-p\f[R], \f[B]\-\-param\f[R]=\f[I]K=V\f[R] \(em Set coupler
+parameter (e.g., STREAK=rumble)
+.PD 0
+.P
+.PD
+\f[B]\-d\f[R], \f[B]\-\-debug\f[R] \(em Show debug info on the last line
+before running
+.PD 0
+.P
+.PD
+\f[B]\-n\f[R], \f[B]\-\-dryrun\f[R] \(em Dry run (show debug info and
+exit)
+.PD 0
+.P
+.PD
+\f[B]\-h\f[R], \f[B]\-\-help\f[R] \(em Show help
+.PD 0
+.P
+.PD
+\f[B]\-\-version\f[R] \(em Show version
+.PP
+\f[B]Subcommands:\f[R]
+.PD 0
+.P
+.PD
+\f[B]art\-list\f[R] \(em List available animations with their properties
+.PD 0
+.P
+.PD
+\f[B]capture\f[R] \(em Dump captured screen text
+.PD 0
+.P
+.PD
+\f[B]sweep\-area\f[R] \(em Show the area where SL runs
+.PD 0
+.P
+.PD
+\f[B]clear\-col\f[R] \(em Print the column where sweeping should start
+.PD 0
+.P
+.PD
+\f[B]debug\f[R] \(em Show detailed sweep area analysis
+.PD 0
+.P
+.PD
+\f[B]mark\f[R] \(em Draw a visual marker at the sweep start column
+.PP
+\f[B]Versions:\f[R]
+.PD 0
+.P
+.PD
+\f[B]2023\f[R] \(em Unicode art version, always sweeps
+.PD 0
+.P
+.PD
+\f[B]2010\f[R] \(em Direct terminal control version
+.PD 0
+.P
+.PD
+\f[B]1985\f[R] \(em Original curses version with retro delay
 .SH DESCRIPTION
 \f[B]sl\f[R] is a wrapper script that dispatches to versioned sl
 binaries.
-When you mistype \f[B]ls\f[R], a steam locomotive runs across your
-terminal as a gentle punishment.
+When you mistype \f[B]ls\f[R], an SL runs across your terminal as a
+gentle punishment.
 .PP
 Four versions are available: \f[B]1985\f[R] (the original),
 \f[B]2010\f[R], \f[B]2023\f[R], and \f[B]2026\f[R].
@@ -46,11 +142,12 @@ Dry run.
 Show debug information and exit without running the train.
 .SH OPTIONS (2026 only)
 .TP
-\f[B]\-A\f[R], \f[B]\-\-art\f[R]=\f[I]NAME\f[R]
+\f[B]\-a\f[R], \f[B]\-\-art\f[R]=\f[I]NAME\f[R]
 Select animation art.
-Use \f[B]\-A?\f[R] or the \f[B]art\-list\f[R] subcommand to list
+Use \f[B]\-a?\f[R] or the \f[B]art\-list\f[R] subcommand to list
 available animations.
 Default: \f[B]sl\f[R].
+Can also be set via the \f[B]SL_ART\f[R] environment variable.
 .TP
 \f[B]\-c\f[R], \f[B]\-\-color\f[R]=\f[I]MODE\f[R]
 Set color mode: \f[B]truecolor\f[R], \f[B]24bit\f[R], or \f[B]256\f[R].
@@ -62,8 +159,8 @@ Set coupler parameter (see COUPLERS for available keys).
 \f[B]\-w\f[R]/\f[B]\-W\f[R], \f[B]\-\-sweep\f[R]/\f[B]\-\-no\-sweep\f[R]
 Enable or disable the sweep effect (default: on).
 .TP
-\f[B]\-a\f[R], \f[B]\-\-all\f[R]
-Sweep the entire screen instead of just the 7\-line train area.
+\f[B]\-C\f[R], \f[B]\-\-clear\f[R]
+Sweep the entire screen instead of just the train area.
 .TP
 \f[B]\-s\f[R]/\f[B]\-S\f[R], \f[B]\-\-stop\f[R]/\f[B]\-\-no\-stop\f[R]
 Stop or don\(aqt stop the train at existing text (default: off).
@@ -95,6 +192,20 @@ Screen\-aware version.
 Detects text on the terminal and sweeps only when the train reaches it.
 Enters from beyond the right edge of the screen to preserve right\-side
 text.
+.SH ANIMATIONS
+The 2026 version supports pluggable animation modules selected with the
+\f[B]\-a\f[R] option or \f[B]SL_ART\f[R] environment variable.
+Use \f[B]\-a?\f[R] or \f[B]art\-list\f[R] to list available animations.
+.SS sl
+The default SL animation with growing smoke trail.
+.SS clawd
+The Claude Code mascot running across the terminal with a spinning
+symbol above its head cycling through the Claude Code thinking indicator
+characters.
+.IP \(bu 2
+\f[B]SL_HAT\f[R] \(em Hat variant.
+Set to \f[B]party\f[R] for a party hat.
+If not set, a party hat appears randomly with a 1\-in\-20 chance.
 .SH SUBCOMMANDS
 These subcommands are primarily for debugging the screen capture and
 sweep detection mechanism.

@@ -4,12 +4,38 @@ sl - sl runs across your terminal
 
 # SYNOPSIS
 
-**sl** [*options*] [*version*|*subcommand*]
+**sl** \[**-wWsStTdn**] \[**-a** *name*] \[**-C**] \[**-c** *mode*] \[**-p** *K=V*] \[*VERSION*|*SUBCOMMAND*]
+
+**Options:**\
+**-w**/**-W**, **--sweep**/**--no-sweep** — Enable/disable sweep (2026, default: on)\
+**-C**, **--clear** — Sweep the entire screen (2026)\
+**-s**/**-S**, **--stop**/**--no-stop** — Stop/don't stop at text (2026)\
+**-t**/**-T**, **--streak**/**--no-streak** — Enable/disable streak (2026, default: on)\
+**-a**, **--art**=*NAME* — Animation art (2026, default: sl, "?" to list)\
+**-c**, **--color**=*MODE* — Color mode: truecolor/24bit/256\
+**-p**, **--param**=*K=V* — Set coupler parameter (e.g., STREAK=rumble)\
+**-d**, **--debug** — Show debug info on the last line before running\
+**-n**, **--dryrun** — Dry run (show debug info and exit)\
+**-h**, **--help** — Show help\
+**--version** — Show version
+
+**Subcommands:**\
+**art-list** — List available animations with their properties\
+**capture** — Dump captured screen text\
+**sweep-area** — Show the area where SL runs\
+**clear-col** — Print the column where sweeping should start\
+**debug** — Show detailed sweep area analysis\
+**mark** — Draw a visual marker at the sweep start column
+
+**Versions:**\
+**2023** — Unicode art version, always sweeps\
+**2010** — Direct terminal control version\
+**1985** — Original curses version with retro delay
 
 # DESCRIPTION
 
 **sl** is a wrapper script that dispatches to versioned sl
-binaries.  When you mistype **ls**, a steam locomotive runs across your
+binaries.  When you mistype **ls**, an SL runs across your
 terminal as a gentle punishment.
 
 Four versions are available: **1985** (the original), **2010**, **2023**,
@@ -47,10 +73,11 @@ On unsupported terminals or platforms, the train always sweeps
 
 # OPTIONS (2026 only)
 
-- **-A**, **--art**=*NAME*
+- **-a**, **--art**=*NAME*
 
-  Select animation art.  Use **-A?** or the **art-list** subcommand
+  Select animation art.  Use **-a?** or the **art-list** subcommand
   to list available animations.  Default: **sl**.
+  Can also be set via the **SL\_ART** environment variable.
 
 - **-c**, **--color**=*MODE*
 
@@ -66,9 +93,9 @@ On unsupported terminals or platforms, the train always sweeps
 
   Enable or disable the sweep effect (default: on).
 
-- **-a**, **--all**
+- **-C**, **--clear**
 
-  Sweep the entire screen instead of just the 7-line train area.
+  Sweep the entire screen instead of just the train area.
 
 - **-s**/**-S**, **--stop**/**--no-stop**
 
@@ -107,6 +134,25 @@ On unsupported terminals or platforms, the train always sweeps
   Screen-aware version.  Detects text on the terminal and sweeps only
   when the train reaches it.  Enters from beyond the right edge of the
   screen to preserve right-side text.
+
+# ANIMATIONS
+
+The 2026 version supports pluggable animation modules selected with
+the **-a** option or **SL\_ART** environment variable.
+Use **-a?** or **art-list** to list available animations.
+
+## sl
+
+The default SL animation with growing smoke trail.
+
+## clawd
+
+The Claude Code mascot running across the terminal with a
+spinning symbol above its head cycling through the Claude Code
+thinking indicator characters.
+
+- **SL\_HAT** — Hat variant.  Set to **party** for a party hat.
+  If not set, a party hat appears randomly with a 1-in-20 chance.
 
 # SUBCOMMANDS
 

@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+v2026.5.1 2026-03-08
+
+    - Rename -a/--all to -C/--clear, -A/--art to -a/--art
+    - Fix stop column parity alignment to prevent 2-character overshoot
+
 v2026.5 2026-03-08
 
     - Add animation abstraction layer with pluggable art modules

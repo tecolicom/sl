@@ -19,6 +19,10 @@ static void origin(coupler *cpl) {
 
     ctx->clear_col = sl_option_int("SWEEP_COL", 0);
     ctx->stop_col = sl_option_int("STOP_COL", -1);
+    /* Round up odd stop_col to match x parity (always even).
+       May exceed COLS, but x <= stop_col still triggers on first frame. */
+    if (ctx->stop_col >= 0 && (ctx->stop_col & 1))
+        ctx->stop_col++;
     ctx->sweep_all = sl_option_bool("SWEEP_ALL");
     ctx->height = sl_art_height;
     ctx->start_y = LINES - ctx->height - 1;

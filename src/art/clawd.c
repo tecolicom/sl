@@ -48,6 +48,8 @@ static const char *legs[] = {
 typedef struct {
     char spinner[SPINNER_BUF];
     const hat_def *hat;
+    int sparkle_offset;
+    int legs_offset;
 } clawd_ctx;
 
 static const hat_def *find_hat(const char *name) {
@@ -66,6 +68,8 @@ static void clawd_init(animation *a) {
     if (!hat_name && arc4random_uniform(20) == 0)
         hat_name = "party";
     c->hat = find_hat(hat_name);
+    c->sparkle_offset = arc4random_uniform(N_SPARKLE_CYCLE);
+    c->legs_offset = arc4random_uniform(2);
 }
 
 static void clawd_draw(animation *a, int tick) {
@@ -73,7 +77,7 @@ static void clawd_draw(animation *a, int tick) {
     int row = 0;
 
     /* Row 0: single spinner character above hat center (col 4) */
-    const char *ch = sparkle_cycle[tick % N_SPARKLE_CYCLE];
+    const char *ch = sparkle_cycle[(tick + c->sparkle_offset) % N_SPARKLE_CYCLE];
     snprintf(c->spinner, SPINNER_BUF, "    %s", ch);
 
     art_goto(row++); art_puts(c->spinner); tputs(clr_eol, 1, putchar);
@@ -81,7 +85,7 @@ static void clawd_draw(animation *a, int tick) {
     art_goto(row++); art_puts(c->hat->art[1]); tputs(clr_eol, 1, putchar);
     for (int i = 0; i < CLAWD_ART_LINES; i++)
         { art_goto(row++); art_puts(clawd_art[i]); tputs(clr_eol, 1, putchar); }
-    art_goto(row++); art_puts(legs[(tick / 5) & 1]); tputs(clr_eol, 1, putchar);
+    art_goto(row++); art_puts(legs[((tick / 5) + c->legs_offset) & 1]); tputs(clr_eol, 1, putchar);
 }
 
 static void clawd_cleanup(animation *a) {

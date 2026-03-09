@@ -19,7 +19,7 @@ static const char *sparkle_cycle[] = {
 
 #define CLAWD_HEIGHT 6  /* spinner + hat(2) + head + body + legs */
 #define SPINNER_BUF 32
-#define LEGS_TICKS  5   /* ticks per leg state */
+#define LEGS_TICKS  10  /* ticks per leg state */
 
 /* Hat variants: 2-line arrays (stick + brim) */
 #define HAT_LINES 2
@@ -35,15 +35,22 @@ static const hat_def hats[] = {
                  "   ▟█▙" } },
 };
 
-static const char *clawd_art[] = {
-    " ▐▛███▜▌",   /* head */
-    "▝▜█████▛▘",   /* body */
-};
-#define CLAWD_ART_LINES (sizeof(clawd_art)/sizeof(clawd_art[0]))
-
-static const char *legs[] = {
-    " ▝▝   ▘▘",   /* closed */
-    "  ▘▘ ▝▝",   /* open */
+/*
+ * Block elements reference:
+ *   Quarter blocks:  ▘ upper-left   ▝ upper-right
+ *                    ▖ lower-left   ▗ lower-right
+ *   Half blocks:     ▌ left   ▐ right
+ *   3/4 blocks:      ▛ UL+UR+LL   ▜ UL+UR+LR   ▙ UL+LL+LR   ▟ UR+LL+LR
+ *   Full block:      █
+ */
+#define POSE_LINES 3  /* head + body + legs */
+static const char *pose[2][POSE_LINES] = {
+    { " ▐▛███▜▌",     /* head */
+      "▝▜█████▛▘",    /* body + arms */
+      "  ▘▘ ▝▝" },    /* legs open */
+    { "▗▟▛███▜▙▖",    /* head + raised arms */
+      " ▐█████▌ ",    /* body + arm roots */
+      " ▝▝   ▘▘" },   /* legs closed */
 };
 
 typedef struct {
@@ -82,11 +89,12 @@ static void clawd_draw(animation *a, int tick) {
     snprintf(c->spinner, SPINNER_BUF, "    %s", ch);
 
     art_goto(row++); art_puts(c->spinner); tputs(clr_eol, 1, putchar);
+    int phase = ((tick + c->legs_offset) / LEGS_TICKS) & 1;
+
     art_goto(row++); art_puts(c->hat->art[0]); tputs(clr_eol, 1, putchar);
     art_goto(row++); art_puts(c->hat->art[1]); tputs(clr_eol, 1, putchar);
-    for (int i = 0; i < CLAWD_ART_LINES; i++)
-        { art_goto(row++); art_puts(clawd_art[i]); tputs(clr_eol, 1, putchar); }
-    art_goto(row++); art_puts(legs[((tick + c->legs_offset) / LEGS_TICKS) & 1]); tputs(clr_eol, 1, putchar);
+    for (int i = 0; i < POSE_LINES; i++)
+        { art_goto(row++); art_puts(pose[phase][i]); tputs(clr_eol, 1, putchar); }
 }
 
 static void clawd_cleanup(animation *a) {

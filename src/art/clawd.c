@@ -19,6 +19,7 @@ static const char *sparkle_cycle[] = {
 
 #define CLAWD_HEIGHT 6  /* spinner + hat(2) + head + body + legs */
 #define SPINNER_BUF 32
+#define LEGS_TICKS  5   /* ticks per leg state */
 
 /* Hat variants: 2-line arrays (stick + brim) */
 #define HAT_LINES 2
@@ -69,7 +70,7 @@ static void clawd_init(animation *a) {
         hat_name = "party";
     c->hat = find_hat(hat_name);
     c->sparkle_offset = arc4random_uniform(N_SPARKLE_CYCLE);
-    c->legs_offset = arc4random_uniform(2);
+    c->legs_offset = arc4random_uniform(LEGS_TICKS * 2);
 }
 
 static void clawd_draw(animation *a, int tick) {
@@ -85,7 +86,7 @@ static void clawd_draw(animation *a, int tick) {
     art_goto(row++); art_puts(c->hat->art[1]); tputs(clr_eol, 1, putchar);
     for (int i = 0; i < CLAWD_ART_LINES; i++)
         { art_goto(row++); art_puts(clawd_art[i]); tputs(clr_eol, 1, putchar); }
-    art_goto(row++); art_puts(legs[((tick / 5) + c->legs_offset) & 1]); tputs(clr_eol, 1, putchar);
+    art_goto(row++); art_puts(legs[((tick + c->legs_offset) / LEGS_TICKS) & 1]); tputs(clr_eol, 1, putchar);
 }
 
 static void clawd_cleanup(animation *a) {
@@ -96,6 +97,8 @@ static void clawd_cleanup(animation *a) {
 animation clawd_animation = {
     .name    = "clawd",
     .height  = CLAWD_HEIGHT,
+    .step    = 1,
+    .delay   = 50000,
     .init    = clawd_init,
     .draw    = clawd_draw,
     .cleanup = clawd_cleanup,

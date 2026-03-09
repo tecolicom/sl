@@ -1,7 +1,7 @@
 #include "coupler.h"
 
 typedef struct {
-    char dch2[20];
+    char dch_seq[20];
     int clear_col;
     int stop_col;
     int sweep_all;
@@ -13,16 +13,16 @@ static void origin(coupler *cpl) {
     sweep_ctx *ctx = malloc(sizeof(sweep_ctx));
     memset(ctx, 0, sizeof(*ctx));
 
-    char *dch2p = tparm(tigetstr("dch"), 2);
-    if (dch2p != NULL)
-        strcpy(ctx->dch2, dch2p);
+    int step = -sl_step;
+    char *dchp = tparm(tigetstr("dch"), step);
+    if (dchp != NULL)
+        strcpy(ctx->dch_seq, dchp);
 
     ctx->clear_col = sl_option_int("SWEEP_COL", 0);
     ctx->stop_col = sl_option_int("STOP_COL", -1);
-    /* Round up odd stop_col to match x parity (always even).
-       May exceed COLS, but x <= stop_col still triggers on first frame. */
-    if (ctx->stop_col >= 0 && (ctx->stop_col & 1))
-        ctx->stop_col++;
+    /* Round up stop_col to match step alignment so x reaches it exactly. */
+    if (ctx->stop_col >= 0 && step > 1 && (ctx->stop_col % step))
+        ctx->stop_col += step - (ctx->stop_col % step);
     ctx->sweep_all = sl_option_bool("SWEEP_ALL");
     ctx->height = sl_art_height;
     ctx->start_y = LINES - ctx->height - 1;
@@ -41,7 +41,7 @@ static void arriving(coupler *cpl, int x) {
     int y0 = ctx->sweep_all ? 0 : ctx->start_y;
     int y1 = ctx->sweep_all ? LINES : ctx->start_y + ctx->height;
     for (int y = y0; y < y1; y++)
-        mvprintw(y, 0, "%s", ctx->dch2);
+        mvprintw(y, 0, "%s", ctx->dch_seq);
 }
 
 static void terminal(coupler *cpl) {

@@ -114,7 +114,7 @@ Without a version argument, the latest available version is selected
 automatically.
 .PP
 The \f[B]2026\f[R] version detects existing text on the terminal screen
-and begins sweeping (pushing text off via the \f[B]dch2\f[R] terminal
+and begins sweeping (pushing text off via the \f[B]dch\f[R] terminal
 capability) only when the train reaches it, preserving text that the
 train has not yet passed.
 The train enters gradually from beyond the right edge of the screen,
@@ -196,12 +196,17 @@ text.
 The 2026 version supports pluggable animation modules selected with the
 \f[B]\-a\f[R] option or \f[B]SL_ART\f[R] environment variable.
 Use \f[B]\-a?\f[R] or \f[B]art\-list\f[R] to list available animations.
+.PP
+Each animation defines its own movement step (columns per frame) and
+frame delay, allowing different animations to move at different speeds.
 .SS sl
 The default SL animation with growing smoke trail.
+Moves 2 columns per frame.
 .SS clawd
 The Claude Code mascot running across the terminal with a spinning
 symbol above its head cycling through the Claude Code thinking indicator
 characters.
+Moves 1 column per frame for smoother motion.
 .IP \(bu 2
 \f[B]SL_HAT\f[R] \(em Hat variant.
 Set to \f[B]party\f[R] for a party hat.
@@ -211,7 +216,7 @@ These subcommands are primarily for debugging the screen capture and
 sweep detection mechanism.
 .TP
 \f[B]art\-list\f[R]
-List available animations with their properties (name, height).
+List available animations with their properties (name, height, step).
 .TP
 \f[B]capture\f[R]
 Dump the captured visible screen text to stdout.
@@ -264,7 +269,7 @@ are double\-width\f[R]
 \f[B]Apple Terminal\f[R]: Profiles → Advanced → \f[B]Unicode East Asian
 Ambiguous characters are wide\f[R]
 .SH INSTALL
-.IP
+.IP "" 2
 .EX
 brew tap tecolicom/tap
 brew install sl\-classic

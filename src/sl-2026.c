@@ -41,7 +41,7 @@ void art_puts(const char *s) {
 #include "cars/coupler.h"
 
 int COLS, LINES;
-int sl_step = -2;
+int sl_step;
 int sl_art_height;
 coupler couplers[MAX_COUPLERS];
 int n_couplers = 0;
@@ -57,6 +57,7 @@ int main() {
         for (int i = 0; animations[i]; i++) {
             animation *a = animations[i];
             printf("[%s.height]=%d\n", a->name, a->height);
+            printf("[%s.step]=%d\n", a->name, a->step > 0 ? a->step : DEFAULT_STEP);
         }
         return 0;
     }
@@ -69,9 +70,12 @@ int main() {
     anim->init(anim);
 
     sl_art_height = anim->height;
+    int step = anim->step > 0 ? anim->step : DEFAULT_STEP;
+    int delay = anim->delay > 0 ? anim->delay : DEFAULT_DELAY;
+    sl_step = -step;
     int start_y = LINES - sl_art_height - 1;
-    /* Start just beyond right edge, even so x always reaches 0 */
-    int start_x = (COLS + 1) & ~1;
+    /* Start just beyond right edge, aligned to step so x reaches 0 */
+    int start_x = ((COLS + step - 1) / step) * step;
     sl_noecho();
     signal(SIGINT, on_sigint);
     CALL_COUPLERS(origin);
@@ -88,7 +92,7 @@ int main() {
         anim->draw(anim, tick);
         CALL_COUPLERS(departed, x);
         fflush(stdout);
-        usleep(100000);
+        usleep(delay);
         if (maxcols > 0) tick++;
     }
     CALL_COUPLERS(terminal);

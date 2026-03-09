@@ -267,10 +267,11 @@ esac
 
 if [[ $art == '?' ]]; then
     eval "declare -A _ai=($(SL_QUERY=list sl-${version:-2026} 2>/dev/null))"
-    printf "%-12s %s\n" "NAME" "HEIGHT"
+    printf "%-12s %6s %4s\n" "NAME" "HEIGHT" "STEP"
     for _k in "${!_ai[@]}"; do
         _name=${_k%%.*} _prop=${_k#*.}
-        [[ $_prop == height ]] && printf "%-12s %s\n" "$_name" "${_ai[$_k]}"
+        [[ $_prop == height ]] && \
+            printf "%-12s %6s %4s\n" "$_name" "${_ai[$_k]}" "${_ai[$_name.step]:-2}"
     done | sort
     exit 0
 fi

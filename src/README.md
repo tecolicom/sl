@@ -43,7 +43,7 @@ and **2026**.  Without a version argument, the latest available version
 is selected automatically.
 
 The **2026** version detects existing text on the terminal screen and
-begins sweeping (pushing text off via the **dch2** terminal capability)
+begins sweeping (pushing text off via the **dch** terminal capability)
 only when the train reaches it, preserving text that the train has not
 yet passed.  The train enters gradually from beyond the right edge of
 the screen, like the original 1985 version.
@@ -141,15 +141,20 @@ The 2026 version supports pluggable animation modules selected with
 the **-a** option or **SL\_ART** environment variable.
 Use **-a?** or **art-list** to list available animations.
 
+Each animation defines its own movement step (columns per frame) and
+frame delay, allowing different animations to move at different speeds.
+
 ## sl
 
 The default SL animation with growing smoke trail.
+Moves 2 columns per frame.
 
 ## clawd
 
 The Claude Code mascot running across the terminal with a
 spinning symbol above its head cycling through the Claude Code
 thinking indicator characters.
+Moves 1 column per frame for smoother motion.
 
 - **SL\_HAT** — Hat variant.  Set to **party** for a party hat.
   If not set, a party hat appears randomly with a 1-in-20 chance.
@@ -161,7 +166,7 @@ sweep detection mechanism.
 
 - **art-list**
 
-  List available animations with their properties (name, height).
+  List available animations with their properties (name, height, step).
 
 - **capture**
 

@@ -9,9 +9,14 @@
 #ifndef SL_ART_H
 #define SL_ART_H
 
+#define DEFAULT_STEP  2
+#define DEFAULT_DELAY 100000
+
 typedef struct animation {
     const char *name;
     int height;
+    int step;        /* columns per frame (0 = DEFAULT_STEP) */
+    int delay;       /* frame delay in microseconds (0 = DEFAULT_DELAY) */
     void *ctx;
     void (*init)(struct animation *a);
     void (*draw)(struct animation *a, int tick);

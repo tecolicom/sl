@@ -1,7 +1,7 @@
 # sl-sweep.sh - Sweep area detection for sl-2026
 #
 # Detects existing text on the terminal screen to determine where
-# sl-2026 should begin sweeping (pushing text off via dch2).
+# sl-2026 should begin sweeping (pushing text off via dch).
 
 . sl-screen.sh
 

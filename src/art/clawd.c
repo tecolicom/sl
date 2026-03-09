@@ -8,6 +8,7 @@
  * Hat variants can be enabled via SL_HAT environment variable.
  */
 
+#include <math.h>
 #include "art.h"
 #include "../sl.h"
 
@@ -17,9 +18,12 @@ static const char *sparkle_cycle[] = {
 };
 #define N_SPARKLE_CYCLE (sizeof(sparkle_cycle)/sizeof(sparkle_cycle[0]))
 
-#define CLAWD_HEIGHT 6  /* spinner + hat(2) + head + body + legs */
-#define SPINNER_BUF 32
-#define LEGS_TICKS  10  /* ticks per leg state */
+#define CLAWD_HEIGHT  6  /* spinner + hat(2) + head + body + legs */
+#define SPINNER_BUF  32
+#define LEGS_TICKS   10  /* base ticks per leg state */
+#define MOD_PERIOD  120  /* ticks per speed modulation cycle */
+#define MOD_RANGE    60  /* speed variation ±60% of base */
+#define SPEED_SCALE 100
 
 /* Hat variants: 2-line arrays (stick + brim) */
 #define HAT_LINES 2
@@ -57,7 +61,9 @@ typedef struct {
     char spinner[SPINNER_BUF];
     const hat_def *hat;
     int sparkle_offset;
-    int legs_offset;
+    int mod_offset;
+    int pose_accum;
+    int pose_phase;
 } clawd_ctx;
 
 static const hat_def *find_hat(const char *name) {
@@ -77,7 +83,8 @@ static void clawd_init(animation *a) {
         hat_name = "party";
     c->hat = find_hat(hat_name);
     c->sparkle_offset = rand() % N_SPARKLE_CYCLE;
-    c->legs_offset = rand() % (LEGS_TICKS * 2);
+    c->mod_offset = rand() % MOD_PERIOD;
+    c->pose_phase = rand() & 1;
 }
 
 static void clawd_draw(animation *a, int tick) {
@@ -88,13 +95,22 @@ static void clawd_draw(animation *a, int tick) {
     const char *ch = sparkle_cycle[(tick + c->sparkle_offset) % N_SPARKLE_CYCLE];
     snprintf(c->spinner, SPINNER_BUF, "    %s", ch);
 
-    art_goto(row++); art_puts(c->spinner); tputs(clr_eol, 1, putchar);
-    int phase = ((tick + c->legs_offset) / LEGS_TICKS) & 1;
+    art_putline(row++, c->spinner);
 
-    art_goto(row++); art_puts(c->hat->art[0]); tputs(clr_eol, 1, putchar);
-    art_goto(row++); art_puts(c->hat->art[1]); tputs(clr_eol, 1, putchar);
+    /* FM-like pose modulation: sine wave varies speed smoothly */
+    double phase_rad = 2.0 * M_PI * (tick + c->mod_offset) / MOD_PERIOD;
+    int speed = SPEED_SCALE + (int)(MOD_RANGE * sin(phase_rad));
+    c->pose_accum += speed;
+    if (c->pose_accum >= LEGS_TICKS * SPEED_SCALE) {
+        c->pose_accum -= LEGS_TICKS * SPEED_SCALE;
+        c->pose_phase ^= 1;
+    }
+    int phase = c->pose_phase;
+
+    art_putline(row++, c->hat->art[0]);
+    art_putline(row++, c->hat->art[1]);
     for (int i = 0; i < POSE_LINES; i++)
-        { art_goto(row++); art_puts(pose[phase][i]); tputs(clr_eol, 1, putchar); }
+        art_putline(row++, pose[phase][i]);
 }
 
 static void clawd_cleanup(animation *a) {

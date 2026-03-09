@@ -27,6 +27,8 @@ typedef struct animation {
 void art_set_pos(int start_y, int x, int maxcols);
 void art_goto(int row);
 void art_puts(const char *s);
+#define art_putline(row, s) \
+    (art_goto(row), art_puts(s), tputs(clr_eol, 1, putchar))
 
 /* Animation registry */
 extern animation *animations[];

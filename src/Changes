@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+v2026.6 2026-03-09
+
+    - Add sl-modern (Toyoda Masashi's mtoyoda/sl) with d51/c51 shortcuts
+
 v2026.5.3 2026-03-09
 
     - clawd: sine-wave modulated pose timing for natural movement variation

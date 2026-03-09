@@ -7,10 +7,16 @@
 
 extern animation sl_animation;
 extern animation clawd_animation;
+extern animation d51_animation;
+extern animation c51_animation;
+extern animation logo_animation;
 
 animation *animations[] = {
     &sl_animation,
     &clawd_animation,
+    &d51_animation,
+    &c51_animation,
+    &logo_animation,
     NULL
 };
 

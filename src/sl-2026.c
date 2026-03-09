@@ -6,6 +6,7 @@
  * Without SL_SWEEP_COL, sweeps only at x=0 (last frame).
  */
 #include <signal.h>
+#include <time.h>
 #include "sl.h"
 #include "art/art.h"
 
@@ -67,6 +68,13 @@ int main() {
 
     setupterm(NULL, STDOUT_FILENO, NULL);
     COLS = tigetnum("cols"); LINES = tigetnum("lines");
+
+    unsigned int seed;
+    FILE *f = fopen("/dev/urandom", "r");
+    if (f) { fread(&seed, sizeof(seed), 1, f); fclose(f); }
+    else   { seed = time(NULL) ^ getpid(); }
+    srand(seed);
+
     anim->init(anim);
 
     sl_art_height = anim->height;

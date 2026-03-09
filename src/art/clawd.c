@@ -73,11 +73,11 @@ static void clawd_init(animation *a) {
     clawd_ctx *c = calloc(1, sizeof(clawd_ctx));
     a->ctx = c;
     const char *hat_name = sl_option("HAT");
-    if (!hat_name && arc4random_uniform(20) == 0)
+    if (!hat_name && rand() % 20 == 0)
         hat_name = "party";
     c->hat = find_hat(hat_name);
-    c->sparkle_offset = arc4random_uniform(N_SPARKLE_CYCLE);
-    c->legs_offset = arc4random_uniform(LEGS_TICKS * 2);
+    c->sparkle_offset = rand() % N_SPARKLE_CYCLE;
+    c->legs_offset = rand() % (LEGS_TICKS * 2);
 }
 
 static void clawd_draw(animation *a, int tick) {

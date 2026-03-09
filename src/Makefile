@@ -52,6 +52,7 @@ sl.1: README.md deflist.lua
 		-M title=SL -M section=1 -M date="$(YEAR)" -M header="sl" \
 		-V footer="$(NAME) $(VER)" \
 		README.md -o $@
+	sed -i '' '/^\.IP$$/{N;/\.EX/s/^\.IP/.IP "" 2/;}' $@
 
 check:
 	@$(GIT) diff --quiet -- ':!src/$(NAME).1' ':!src/$(NAME)' ':!src/Changes' \

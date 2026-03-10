@@ -144,19 +144,14 @@ On unsupported terminals or platforms, the train always sweeps
 Other versions (1985, 2010, 2023) work on any terminal.
 .SH OPTIONS
 .TP
-\f[B]\-d\f[R]
-Show debug information on the last line before running.
-.TP
-\f[B]\-n\f[R]
-Dry run.
-Show debug information and exit without running the train.
-.SH OPTIONS (2026 only)
-.TP
 \f[B]\-a\f[R], \f[B]\-\-art\f[R]=\f[I]NAME\f[R]
 Select animation art.
 Use \f[B]\-l\f[R] to list available animations.
 Default: \f[B]sl\f[R].
 Can also be set via the \f[B]SL_ART\f[R] environment variable.
+Use \f[B]random\f[R] to pick randomly from all available animations.
+A comma\-separated list (e.g., \f[B]sl,sl,sl,clawd\f[R]) picks one entry
+at random, allowing weighted selection.
 .TP
 \f[B]\-l\f[R], \f[B]\-\-list\f[R]
 List available animations with their properties (name, height, step).
@@ -191,6 +186,14 @@ Set streak mode.
 \f[B]rumble\f[R] enables thickness modulation, \f[B]reverse\f[R]
 reverses the direction.
 Combine with commas (e.g., \f[B]\-p STREAK=rumble,reverse\f[R]).
+.SS Debug
+.TP
+\f[B]\-d\f[R], \f[B]\-\-debug\f[R]
+Show debug information on the last line before running.
+.TP
+\f[B]\-n\f[R], \f[B]\-\-dryrun\f[R]
+Dry run.
+Show debug information and exit without running the train.
 .SH VERSIONS
 .TP
 \f[B]1985\f[R]

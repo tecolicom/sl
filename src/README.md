@@ -65,21 +65,14 @@ On unsupported terminals or platforms, the train always sweeps
 
 # OPTIONS
 
-- **-d**
-
-  Show debug information on the last line before running.
-
-- **-n**
-
-  Dry run.  Show debug information and exit without running the train.
-
-# OPTIONS (2026 only)
-
 - **-a**, **--art**=*NAME*
 
   Select animation art.  Use **-l** to list available animations.
   Default: **sl**.
   Can also be set via the **SL\_ART** environment variable.
+  Use **random** to pick randomly from all available animations.
+  A comma-separated list (e.g., **sl,sl,sl,clawd**) picks one
+  entry at random, allowing weighted selection.
 
 - **-l**, **--list**
 
@@ -124,6 +117,16 @@ On unsupported terminals or platforms, the train always sweeps
   Set streak mode.  **rumble** enables thickness modulation,
   **reverse** reverses the direction.  Combine with commas
   (e.g., **-p STREAK=rumble,reverse**).
+
+## Debug
+
+- **-d**, **--debug**
+
+  Show debug information on the last line before running.
+
+- **-n**, **--dryrun**
+
+  Dry run.  Show debug information and exit without running the train.
 
 # VERSIONS
 

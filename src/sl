@@ -80,6 +80,20 @@ list() {
 load_sweep() {
     [[ $art ]] && export SL_ART=$art
     eval "declare -A SL_ART_INFO=($(SL_QUERY=list sl-2026 2>/dev/null))"
+    local _art=${art:-${SL_ART:-}}
+    if [[ $_art == random ]]; then
+        local _names=() _k
+        for _k in "${!SL_ART_INFO[@]}"; do
+            [[ $_k == *.height ]] && _names+=("${_k%.height}")
+        done
+        art=${_names[RANDOM % ${#_names[@]}]}
+        export SL_ART=$art
+    elif [[ $_art == *,* ]]; then
+        local _names
+        IFS=, read -ra _names <<< "$_art"
+        art=${_names[RANDOM % ${#_names[@]}]}
+        export SL_ART=$art
+    fi
     SL_HEIGHT=${SL_ART_INFO[${art:-sl}.height]:-}
     . sl-sweep.sh
 }

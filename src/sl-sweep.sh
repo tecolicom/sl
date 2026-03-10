@@ -30,6 +30,7 @@ draw_column_marker() {
     for ((row = 0; row < SL_HEIGHT; row++)); do
         mvprintf "$((start_y + row + 1))" "$c" "<"
     done
+    mvprintf "$((start_y + SL_HEIGHT))" "$((c + 1))" " $col"
     mvprintf "$TERM_LINES" 1 ""
 }
 

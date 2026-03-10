@@ -128,7 +128,8 @@ case "$subcmd" in
     capture|clear-col|debug|mark|sweep-area)
         shift
         ;;
-    *)  ;;
+    ''|-*) ;;
+    *)  error "unknown subcommand: $subcmd" ;;
 esac
 
 load_sweep
@@ -154,7 +155,6 @@ case "$subcmd" in
     mark)
         clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
         draw_column_marker "$clear_col"
-        printf '%s\n' "$clear_col"
         exit 0
         ;;
 esac

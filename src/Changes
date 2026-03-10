@@ -1,5 +1,17 @@
 {{$NEXT}}
 
+v2026.7 2026-03-10
+
+    - Add run-off support: -g/--gone option to let the train exit the screen
+    - Add left-side clipping for smooth exit animation
+    - Add D51/C51/Modern animations from mtoyoda/sl
+    - Rename logo animation to modern
+    - Refactor: version-first dispatch, extract sl-1985.sh, add -l/--list option
+    - Remove d51/c51 version shortcuts (use sl modern -c instead)
+    - Move stop logic from sweep coupler to main loop (SL_STOP_COL)
+    - Reject unknown subcommands with error message
+    - Show column number next to marker (no scroll)
+
 v2026.6 2026-03-09
 
     - Add sl-modern (Toyoda Masashi's mtoyoda/sl) with d51/c51 shortcuts

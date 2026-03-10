@@ -1,5 +1,5 @@
 /*
- * art/modern/sl.c - D51, C51, LOGO animations (from mtoyoda/sl)
+ * art/modern/sl.c - D51, C51, Modern animations (from mtoyoda/sl)
  */
 
 #include "../art.h"
@@ -248,10 +248,10 @@ animation c51_animation = {
 };
 
 /*---------------------------------------------------------------
- * LOGO frame data (locomotive + coal car + 2 cars concatenated)
+ * Modern (LOGO) frame data (locomotive + coal car + 2 cars concatenated)
  *---------------------------------------------------------------*/
 
-static const train_def logo_def = {
+static const train_def modern_def = {
     .n_patterns = LOGOPATTERNS,
     .n_lines    = LOGOHEIGHT,   /* 6 */
     .frame_div  = 3,
@@ -279,14 +279,14 @@ static const train_def logo_def = {
     }
 };
 
-static void logo_init(animation *a) { toyoda_init_with(a, &logo_def); }
+static void modern_init(animation *a) { toyoda_init_with(a, &modern_def); }
 
-animation logo_animation = {
-    .name    = "logo",
+animation modern_animation = {
+    .name    = "modern",
     .height  = SMOKE_HEIGHT + LOGOHEIGHT,   /* 6 + 6 = 12 */
     .step    = 1,
     .delay   = 40000,
-    .init    = logo_init,
+    .init    = modern_init,
     .draw    = toyoda_draw,
     .cleanup = toyoda_cleanup,
 };

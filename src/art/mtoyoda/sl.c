@@ -1,5 +1,5 @@
 /*
- * art/modern/sl.c - D51, C51, Modern animations (from mtoyoda/sl)
+ * art/mtoyoda/sl.c - D51, C51, Modern animations (from mtoyoda/sl)
  */
 
 #include "../art.h"
@@ -103,15 +103,15 @@ typedef struct {
     smoke_particle smoke[MAX_SMOKE];
     int n_smoke;
     int smoke_count;    /* total created, for alternating kind */
-} toyoda_ctx;
+} train_ctx;
 
-static void toyoda_init_with(animation *a, const train_def *def) {
-    toyoda_ctx *c = calloc(1, sizeof(toyoda_ctx));
+static void init_with(animation *a, const train_def *def) {
+    train_ctx *c = calloc(1, sizeof(train_ctx));
     c->def = def;
     a->ctx = c;
 }
 
-static void render_smoke(toyoda_ctx *ctx, const train_def *d) {
+static void render_smoke(train_ctx *ctx, const train_def *d) {
     char buf[256];
     for (int row = 0; row < SMOKE_HEIGHT; row++) {
         int w = d->art_width;
@@ -130,7 +130,7 @@ static void render_smoke(toyoda_ctx *ctx, const train_def *d) {
     }
 }
 
-static void update_smoke(toyoda_ctx *ctx, const train_def *d, int tick) {
+static void update_smoke(train_ctx *ctx, const train_def *d, int tick) {
     /* Every frame: particles drift right relative to art (loco moves left) */
     for (int i = 0; i < ctx->n_smoke; i++)
         ctx->smoke[i].rel_x += 1;
@@ -158,8 +158,8 @@ static void update_smoke(toyoda_ctx *ctx, const train_def *d, int tick) {
     }
 }
 
-static void toyoda_draw(animation *a, int tick) {
-    toyoda_ctx *c = a->ctx;
+static void draw(animation *a, int tick) {
+    train_ctx *c = a->ctx;
     const train_def *d = c->def;
     int frame = (d->n_patterns - tick / d->frame_div % d->n_patterns) % d->n_patterns;
 
@@ -174,12 +174,12 @@ static void toyoda_draw(animation *a, int tick) {
     update_smoke(c, d, tick);
 }
 
-static void toyoda_cleanup(animation *a) {
+static void cleanup(animation *a) {
     free(a->ctx);
     a->ctx = NULL;
 }
 
-static void d51_init(animation *a) { toyoda_init_with(a, &d51_def); }
+static void d51_init(animation *a) { init_with(a, &d51_def); }
 
 animation d51_animation = {
     .name    = "d51",
@@ -188,8 +188,8 @@ animation d51_animation = {
     .step    = 1,
     .delay   = 40000,
     .init    = d51_init,
-    .draw    = toyoda_draw,
-    .cleanup = toyoda_cleanup,
+    .draw    = draw,
+    .cleanup = cleanup,
 };
 
 /*---------------------------------------------------------------
@@ -236,7 +236,7 @@ static const train_def c51_def = {
     }
 };
 
-static void c51_init(animation *a) { toyoda_init_with(a, &c51_def); }
+static void c51_init(animation *a) { init_with(a, &c51_def); }
 
 animation c51_animation = {
     .name    = "c51",
@@ -245,15 +245,15 @@ animation c51_animation = {
     .step    = 1,
     .delay   = 40000,
     .init    = c51_init,
-    .draw    = toyoda_draw,
-    .cleanup = toyoda_cleanup,
+    .draw    = draw,
+    .cleanup = cleanup,
 };
 
 /*---------------------------------------------------------------
  * Modern (LOGO) frame data (locomotive + coal car + 2 cars concatenated)
  *---------------------------------------------------------------*/
 
-static const train_def modern_def = {
+static const train_def logo_def = {
     .n_patterns = LOGOPATTERNS,
     .n_lines    = LOGOHEIGHT,   /* 6 */
     .frame_div  = 3,
@@ -281,7 +281,7 @@ static const train_def modern_def = {
     }
 };
 
-static void modern_init(animation *a) { toyoda_init_with(a, &modern_def); }
+static void logo_init(animation *a) { init_with(a, &logo_def); }
 
 animation modern_animation = {
     .name    = "modern",
@@ -289,7 +289,7 @@ animation modern_animation = {
     .width   = LOGOLENGTH,
     .step    = 1,
     .delay   = 40000,
-    .init    = modern_init,
-    .draw    = toyoda_draw,
-    .cleanup = toyoda_cleanup,
+    .init    = logo_init,
+    .draw    = draw,
+    .cleanup = cleanup,
 };

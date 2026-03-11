@@ -8,8 +8,8 @@
 #   2026        Default version (can be omitted)
 #   2023        Unicode art version, always sweeps
 #   2010        Direct terminal control version
+#   1992        Toyoda Masashi's SL (mtoyoda/sl)
 #   1985        Original curses version with retro delay
-#   modern      Toyoda Masashi's SL (mtoyoda/sl)
 #
 # Options:
 #   -w/-W, --sweep/--no-sweep    Enable/disable sweep (default: on)
@@ -105,7 +105,7 @@ load_sweep() {
 if [[ ${1:-} && ${1:0:1} != - ]]; then
     case "$1" in
         2026)            shift ;;
-        modern|2023|2010) v=$1; shift; exec sl-$v "$@" ;;
+        1992|2023|2010) v=$1; shift; exec sl-$v "$@" ;;
         1985)            shift; . sl-1985.sh "$@"; exit ;;
     esac
 fi

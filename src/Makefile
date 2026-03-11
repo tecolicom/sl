@@ -18,7 +18,7 @@ VER := $(CURRENT)
 
 MTOYODA := ../mtoyoda
 
-all: sl-1985 sl-2010 sl-2023 sl-2026 sl-modern
+all: sl-2026 sl-2023 sl-2010 sl-1992 sl-1985
 
 sl-1985: sl.c
 	$(CC) -std=c89 -w \
@@ -37,12 +37,12 @@ SL2026_CAR_FLAGS := $(addprefix -DCAR_,$(SL2026_CARS))
 SL2026_CAR_NAMES := $(foreach c,$(SL2026_CARS),$(firstword $(subst =, ,$(c))))
 SL2026_CAR_SRCS  := cars/couplers.c \
 	$(shell echo '$(SL2026_CAR_NAMES)' | tr A-Z a-z | sed 's/[^ ]*/cars\/&.c/g')
-SL2026_ANIM_SRCS := art/arts.c art/sl.c art/clawd.c art/modern/sl.c
+SL2026_ANIM_SRCS := art/arts.c art/sl.c art/clawd.c art/mtoyoda/sl.c
 
-sl-2026: sl-2026.c $(SL2026_CAR_SRCS) $(SL2026_ANIM_SRCS) sl.h cars/coupler.h art/art.h art/modern/sl.h
+sl-2026: sl-2026.c $(SL2026_CAR_SRCS) $(SL2026_ANIM_SRCS) sl.h cars/coupler.h art/art.h art/mtoyoda/sl.h
 	$(CC) $(NCURSES_CFLAGS) $(SL2026_CAR_FLAGS) -o $@ sl-2026.c $(SL2026_CAR_SRCS) $(SL2026_ANIM_SRCS) $(NCURSES_LIBS) -lm
 
-sl-modern: $(MTOYODA)/sl.c
+sl-1992: $(MTOYODA)/sl.c
 	$(CC) -O -Wall $(NCURSES_CFLAGS) -o $@ $< $(NCURSES_LIBS)
 
 %: %.c
@@ -104,4 +104,4 @@ release:
 	echo "Released $(VERSION)"
 
 clean:
-	rm -f sl-{1985,2010,2023,2026,modern}
+	rm -f sl-{2026,2023,2010,1992,1985}

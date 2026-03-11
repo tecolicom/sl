@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+v2026.7.2 2026-03-11
+
+    - Rename version "modern" to "1992", move art/modern to art/mtoyoda
+    - Support multiple art arguments (sl d51 clawd sl) and repeatable -a
+    - Reassign -c from --color to --clear
+    - Add d51/c51/modern to ANIMATIONS documentation
+    - Reorganize SYNOPSIS and VERSIONS sections
+
 v2026.7.1 2026-03-10
 
     - Support random and weighted art selection (-a random, -a sl,sl,clawd)

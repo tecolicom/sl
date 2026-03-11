@@ -4,9 +4,9 @@
 .SH NAME
 sl \- sl runs across your terminal
 .SH SYNOPSIS
-\f[B]sl\f[R] [\f[I]VERSION\f[R]] [\f[B]\-wWsStTgGdnl\f[R]]
-[\f[B]\-a\f[R] \f[I]name\f[R]] [\f[B]\-C\f[R]] [\f[B]\-c\f[R]
-\f[I]mode\f[R]] [\f[B]\-p\f[R] \f[I]K=V\f[R]] [\f[I]SUBCOMMAND\f[R]]
+\f[B]sl\f[R] [\f[B]\-wWsStTgGdnl\f[R]] [\f[B]\-a\f[R] \f[I]name\f[R]]
+[\f[B]\-C\f[R]] [\f[B]\-c\f[R] \f[I]mode\f[R]] [\f[B]\-p\f[R]
+\f[I]K=V\f[R]] [\f[I]ART\f[R] ...]
 .PP
 \f[B]Options:\f[R]
 .PD 0
@@ -38,7 +38,7 @@ sl \- sl runs across your terminal
 .P
 .PD
 \f[B]\-a\f[R], \f[B]\-\-art\f[R]=\f[I]NAME\f[R] \(em Animation art
-(2026, default: sl)
+(2026, repeatable; default: sl)
 .PD 0
 .P
 .PD
@@ -94,11 +94,13 @@ exit)
 .PD
 \f[B]mark\f[R] \(em Draw a visual marker at the sweep start column
 .PP
+\f[B]sl\f[R] \f[I]VERSION\f[R] [\f[I]options\f[R] ...]
+.PP
 \f[B]Versions\f[R] (must be the first argument)\f[B]:\f[R]
 .PD 0
 .P
 .PD
-\f[B]modern\f[R] \(em Toyoda Masashi\(aqs SL (mtoyoda/sl)
+\f[B]2026\f[R] \(em Screen\-aware version (default, can be omitted)
 .PD 0
 .P
 .PD
@@ -110,6 +112,10 @@ exit)
 .PD 0
 .P
 .PD
+\f[B]1992\f[R] \(em Toyoda Masashi\(aqs SL (mtoyoda/sl)
+.PD 0
+.P
+.PD
 \f[B]1985\f[R] \(em Original curses version with retro delay
 .SH DESCRIPTION
 \f[B]sl\f[R] is a wrapper script that dispatches to versioned sl
@@ -118,8 +124,8 @@ When you mistype \f[B]ls\f[R], an SL runs across your terminal as a
 gentle punishment.
 .PP
 Five versions are available: \f[B]1985\f[R] (the original),
-\f[B]2010\f[R], \f[B]2023\f[R], \f[B]2026\f[R], and \f[B]modern\f[R]
-(Toyoda Masashi\(aqs SL).
+\f[B]1992\f[R] (Toyoda Masashi\(aqs SL), \f[B]2010\f[R], \f[B]2023\f[R],
+and \f[B]2026\f[R].
 The version must be specified as the first argument; without it,
 \f[B]2026\f[R] is used.
 .PP
@@ -129,6 +135,10 @@ capability) only when the train reaches it, preserving text that the
 train has not yet passed.
 The train enters gradually from beyond the right edge of the screen,
 like the original 1985 version.
+.PP
+Multiple animations can be run in sequence by specifying art names as
+arguments (e.g., \f[B]sl d51 clawd\f[R]) or with repeated \f[B]\-a\f[R]
+options.
 .SH REQUIREMENTS
 The 2026 version captures the terminal screen content to detect existing
 text.
@@ -141,11 +151,15 @@ macOS:
 .PP
 On unsupported terminals or platforms, the train always sweeps
 (equivalent to the 2023 behavior).
-Other versions (1985, 2010, 2023) work on any terminal.
+Other versions (1985, 1992, 2010, 2023) work on any terminal.
 .SH OPTIONS
 .TP
 \f[B]\-a\f[R], \f[B]\-\-art\f[R]=\f[I]NAME\f[R]
 Select animation art.
+Can be specified multiple times to run several animations in sequence
+(e.g., \f[B]\-a clawd \-a sl\f[R]).
+Non\-option arguments are also treated as art names (e.g., \f[B]sl clawd
+sl\f[R] is equivalent to \f[B]sl \-a clawd \-a sl\f[R]).
 Use \f[B]\-l\f[R] to list available animations.
 Default: \f[B]sl\f[R].
 Can also be set via the \f[B]SL_ART\f[R] environment variable.
@@ -196,35 +210,37 @@ Dry run.
 Show debug information and exit without running the train.
 .SH VERSIONS
 .TP
-\f[B]1985\f[R]
-The original SL, written in K&R C with curses.
-Output is filtered through a per\-character delay for a retro feel.
-.TP
-\f[B]2010\f[R]
-Updated version using direct terminal control instead of curses.
+\f[B]2026\f[R]
+Screen\-aware version (default).
+Detects text on the terminal and sweeps only when the train reaches it.
+Enters from beyond the right edge of the screen to preserve right\-side
+text.
+Supports pluggable animations (see ANIMATIONS).
 .TP
 \f[B]2023\f[R]
 Unicode art version with box\-drawing characters.
 Always sweeps text from the left edge.
 .TP
-\f[B]2026\f[R]
-Screen\-aware version.
-Detects text on the terminal and sweeps only when the train reaches it.
-Enters from beyond the right edge of the screen to preserve right\-side
-text.
+\f[B]2010\f[R]
+Updated version using direct terminal control instead of curses.
 .TP
-\f[B]modern\f[R]
+\f[B]1992\f[R]
 Toyoda Masashi\(aqs SL (\c
 .UR https://github.com/mtoyoda/sl
 mtoyoda/sl
 .UE \c
 ).
 Supports \f[B]\-a\f[R] (accident), \f[B]\-F\f[R] (fly), \f[B]\-l\f[R]
-(logo), and \f[B]\-c\f[R] (C51) options (e.g., \f[B]sl modern \-F
+(logo), and \f[B]\-c\f[R] (C51) options (e.g., \f[B]sl 1992 \-F
 \-a\f[R]).
+.TP
+\f[B]1985\f[R]
+The original SL, written in K&R C with curses.
+Output is filtered through a per\-character delay for a retro feel.
 .SH ANIMATIONS
 The 2026 version supports pluggable animation modules selected with the
-\f[B]\-a\f[R] option or \f[B]SL_ART\f[R] environment variable.
+\f[B]\-a\f[R] option, non\-option arguments, or \f[B]SL_ART\f[R]
+environment variable.
 Use \f[B]\-l\f[R] to list available animations.
 .PP
 Each animation defines its own movement step (columns per frame) and
@@ -241,6 +257,15 @@ Moves 1 column per frame for smoother motion.
 \f[B]SL_HAT\f[R] \(em Hat variant.
 Set to \f[B]party\f[R] for a party hat.
 If not set, a party hat appears randomly with a 1\-in\-20 chance.
+.SS d51
+D51 steam locomotive with smoke particle system.
+Ported from mtoyoda/sl.
+.SS c51
+C51 steam locomotive with smoke particle system.
+Ported from mtoyoda/sl.
+.SS modern
+Logo\-style locomotive with coal car and passenger cars.
+Ported from mtoyoda/sl.
 .SH SUBCOMMANDS
 These subcommands are primarily for debugging the screen capture and
 sweep detection mechanism.
@@ -272,9 +297,6 @@ Set \f[B]SL_CAR_SWEEP=0\f[R] to disable.
 .IP \(bu 2
 \f[B]SL_SWEEP_COL\f[R] \(em Column at which sweeping begins.
 .IP \(bu 2
-\f[B]SL_STOP_COL\f[R] \(em Column at which the train stops (default: 0 =
-left edge, \-1 = run off screen).
-.IP \(bu 2
 \f[B]SL_SWEEP_ALL\f[R] \(em Sweep all screen lines instead of just the
 train area.
 .SS Streak
@@ -284,6 +306,10 @@ Set \f[B]SL_CAR_STREAK=0\f[R] to disable.
 \f[B]SL_STREAK_RUMBLE\f[R] \(em Enable ▔/▀ thickness modulation.
 .IP \(bu 2
 \f[B]SL_STREAK_REVERSE\f[R] \(em Reverse direction (left\-to\-right).
+.SS Main loop
+.IP \(bu 2
+\f[B]SL_STOP_COL\f[R] \(em Column at which the train stops (default: 0 =
+left edge, \-1 = run off screen).
 .SH TERMINAL TIPS
 The 2026 version uses Unicode box\-drawing and block characters whose
 East Asian Width property is \(dqAmbiguous\(dq.

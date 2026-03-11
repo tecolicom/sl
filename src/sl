@@ -2,14 +2,15 @@
 
 # sl - sl runs across your terminal
 #
-# Usage: sl [VERSION] [options] [SUBCOMMAND]
+# Usage: sl [options] [ART ...]
+#        sl VERSION [options ...]
 #
 # Versions (must be the first argument):
-#   2026        Default version (can be omitted)
-#   2023        Unicode art version, always sweeps
-#   2010        Direct terminal control version
-#   1992        Toyoda Masashi's SL (mtoyoda/sl)
-#   1985        Original curses version with retro delay
+#   2026  Default version (can be omitted)
+#   2023  Unicode art version, always sweeps
+#   2010  Direct terminal control version
+#   1992  Toyoda Masashi's SL (mtoyoda/sl)
+#   1985  Original curses version with retro delay
 #
 # Options:
 #   -w/-W, --sweep/--no-sweep    Enable/disable sweep (default: on)
@@ -17,7 +18,7 @@
 #   -s/-S, --stop/--no-stop      Stop/don't stop at text
 #   -t/-T, --streak/--no-streak  Enable/disable streak (default: on)
 #   -g/-G, --gone/--no-gone      Run off screen to the left
-#   -a,    --art=NAME            Animation art (default: sl, SL_ART)
+#   -a,    --art=NAME            Animation art (repeatable; default: sl)
 #   -l,    --list                List available animations
 #   -c,    --color=MODE          Color mode: truecolor/24bit/256
 #   -p,    --param=K=V           Set coupler parameter (e.g., STREAK=rumble)
@@ -114,7 +115,7 @@ fi
 # Option parsing (2026 only)
 ##############################################################################
 
-USAGE="sl [VERSION] [options] [SUBCOMMAND]"
+USAGE="sl [options] [ART ...]"
 
 declare -A OPTS=(
     [&REQUIRE]=0.8.0 [&USAGE]="$USAGE" [&DELIM]=
@@ -127,7 +128,7 @@ declare -A OPTS=(
     [    stop | s ~S # stop at text      ]=
     [  streak | t ~T # enable streak     ]=1
     [    gone | g ~G # run off screen    ]=
-    [     art | a  : # animation art     ]=
+    [     art | a  @ # animation art     ]=
     [    list | l  ! # list animations   ]=
     [   color | c  : # color mode        ]=
     [   param | p  % # coupler parameter ]=
@@ -140,74 +141,89 @@ declare -A OPTS=(
 ##############################################################################
 
 subcmd=${1:-}
+arts=()
 case "$subcmd" in
     capture|clear-col|debug|mark|sweep-area)
         shift
         ;;
     ''|-*) ;;
-    *)  error "unknown subcommand: $subcmd" ;;
+    *)  subcmd=; for _a; do arts+=("$_a"); done; shift $# ;;
 esac
 
-load_sweep
-
-case "$subcmd" in
-    capture)
-        get_visible_screen || { error "Failed to capture screen text."; }
-        exit 0
-        ;;
-    sweep-area)
-        get_sweep_area || { error "Failed to capture screen text."; }
-        exit 0
-        ;;
-    clear-col)
-        clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
-        printf '%s\n' "$clear_col"
-        exit 0
-        ;;
-    debug)
-        debug_capture_and_col
-        exit $?
-        ;;
-    mark)
-        clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
-        draw_column_marker "$clear_col"
-        exit 0
-        ;;
-esac
+if [[ $subcmd ]]; then
+    load_sweep
+    case "$subcmd" in
+        capture)
+            get_visible_screen || { error "Failed to capture screen text."; }
+            exit 0
+            ;;
+        sweep-area)
+            get_sweep_area || { error "Failed to capture screen text."; }
+            exit 0
+            ;;
+        clear-col)
+            clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
+            printf '%s\n' "$clear_col"
+            exit 0
+            ;;
+        debug)
+            debug_capture_and_col
+            exit $?
+            ;;
+        mark)
+            clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
+            draw_column_marker "$clear_col"
+            exit 0
+            ;;
+    esac
+fi
 
 ##############################################################################
 # Run sl-2026
 ##############################################################################
 
-[[ $clear ]] && export SL_SWEEP_ALL=1
+run_sl() {
+    load_sweep
 
-clear_col=9999
-col=$( [[ $clear ]] && get_visible_screen | calc_max_display_col || calc_clear_col )
-[[ -n "$col" ]] && ((col >= 0)) && clear_col=$col
+    [[ $clear ]] && export SL_SWEEP_ALL=1
 
-if [[ $debug || $dryrun ]]; then
-    get_terminal_size
-    printf "========== %s %s %s %sx%s %s" \
-        "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col"
-    [[ $dryrun ]] && { echo; exit 0; }
+    clear_col=9999
+    col=$( [[ $clear ]] && get_visible_screen | calc_max_display_col || calc_clear_col )
+    [[ -n "$col" ]] && ((col >= 0)) && clear_col=$col
+
+    if [[ $debug || $dryrun ]]; then
+        get_terminal_size
+        printf "========== %s %s %s %sx%s %s %s" \
+            "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col" "${art:-sl}"
+        [[ $dryrun ]] && { echo; return 0; }
+    fi
+
+    export SL_CAR_SWEEP=${sweep:-0}  SL_SWEEP_COL=$clear_col
+    export SL_CAR_STREAK=${streak:-0}
+    if   [[ $stop   ]]; then export SL_STOP_COL=$clear_col
+    elif [[ $gone ]]; then export SL_STOP_COL=-1
+    fi
+
+    if [[ ${param[STREAK]:-} ]]; then
+        IFS=, read -ra _modes <<< "${param[STREAK]}"
+        for _m in "${_modes[@]}"; do
+            export "SL_STREAK_${_m^^}=1"
+        done
+    fi
+
+    case ${color:-} in
+        truecolor|24bit) export COLORTERM=truecolor ;;
+        256)             unset COLORTERM ;;
+        ?*)              error "unknown color mode: $color" ;;
+    esac
+    sl-2026 "$@"
+}
+
+arts=("${art[@]}" "${arts[@]}")
+if ((${#arts[@]} == 0)); then
+    arts=("")
 fi
-
-export SL_CAR_SWEEP=${sweep:-0}  SL_SWEEP_COL=$clear_col
-export SL_CAR_STREAK=${streak:-0}
-if   [[ $stop   ]]; then export SL_STOP_COL=$clear_col
-elif [[ $gone ]]; then export SL_STOP_COL=-1
-fi
-
-if [[ ${param[STREAK]:-} ]]; then
-    IFS=, read -ra _modes <<< "${param[STREAK]}"
-    for _m in "${_modes[@]}"; do
-        export "SL_STREAK_${_m^^}=1"
-    done
-fi
-
-case ${color:-} in
-    truecolor|24bit) export COLORTERM=truecolor ;;
-    256)             unset COLORTERM ;;
-    ?*)              error "unknown color mode: $color" ;;
-esac
-exec sl-2026 "$@"
+for _art in "${arts[@]}"; do
+    art=$_art
+    run_sl "$@"
+done

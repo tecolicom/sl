@@ -4,17 +4,17 @@ sl - sl runs across your terminal
 
 # SYNOPSIS
 
-**sl** \[**-wWsStTgGdnl**] \[**-a** *name*] \[**-C**] \[**-c** *mode*] \[**-p** *K=V*] \[*ART* ...]
+**sl** \[**-wWsStTgGdnl**] \[**-a** *name*] \[**-c**] \[**--color** *mode*] \[**-p** *K=V*] \[*ART* ...]
 
 **Options:**\
   **-w**/**-W**, **--sweep**/**--no-sweep** — Enable/disable sweep (2026, default: on)\
-  **-C**, **--clear** — Sweep the entire screen (2026)\
+  **-c**, **--clear** — Sweep the entire screen (2026)\
   **-s**/**-S**, **--stop**/**--no-stop** — Stop/don't stop at text (2026)\
   **-t**/**-T**, **--streak**/**--no-streak** — Enable/disable streak (2026, default: on)\
   **-g**/**-G**, **--gone**/**--no-gone** — Run off screen to the left (2026)\
   **-a**, **--art**=*NAME* — Animation art (2026, repeatable; default: sl)\
   **-l**, **--list** — List available animations\
-  **-c**, **--color**=*MODE* — Color mode: truecolor/24bit/256\
+  **--color**=*MODE* — Color mode: truecolor/24bit/256\
   **-p**, **--param**=*K=V* — Set coupler parameter (e.g., STREAK=rumble)\
   **-d**, **--debug** — Show debug info on the last line before running\
   **-n**, **--dryrun** — Dry run (show debug info and exit)\
@@ -87,7 +87,7 @@ On unsupported terminals or platforms, the train always sweeps
 
   List available animations with their properties (name, height, step).
 
-- **-c**, **--color**=*MODE*
+- **--color**=*MODE*
 
   Set color mode: **truecolor**, **24bit**, or **256**.
 
@@ -101,7 +101,7 @@ On unsupported terminals or platforms, the train always sweeps
 
   Enable or disable the sweep effect (default: on).
 
-- **-C**, **--clear**
+- **-c**, **--clear**
 
   Sweep the entire screen instead of just the train area.
 

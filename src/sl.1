@@ -5,7 +5,7 @@
 sl \- sl runs across your terminal
 .SH SYNOPSIS
 \f[B]sl\f[R] [\f[B]\-wWsStTgGdnl\f[R]] [\f[B]\-a\f[R] \f[I]name\f[R]]
-[\f[B]\-C\f[R]] [\f[B]\-c\f[R] \f[I]mode\f[R]] [\f[B]\-p\f[R]
+[\f[B]\-c\f[R]] [\f[B]\-\-color\f[R] \f[I]mode\f[R]] [\f[B]\-p\f[R]
 \f[I]K=V\f[R]] [\f[I]ART\f[R] ...]
 .PP
 \f[B]Options:\f[R]
@@ -17,7 +17,7 @@ sl \- sl runs across your terminal
 .PD 0
 .P
 .PD
-\f[B]\-C\f[R], \f[B]\-\-clear\f[R] \(em Sweep the entire screen (2026)
+\f[B]\-c\f[R], \f[B]\-\-clear\f[R] \(em Sweep the entire screen (2026)
 .PD 0
 .P
 .PD
@@ -46,8 +46,7 @@ sl \- sl runs across your terminal
 .PD 0
 .P
 .PD
-\f[B]\-c\f[R], \f[B]\-\-color\f[R]=\f[I]MODE\f[R] \(em Color mode:
-truecolor/24bit/256
+\f[B]\-\-color\f[R]=\f[I]MODE\f[R] \(em Color mode: truecolor/24bit/256
 .PD 0
 .P
 .PD
@@ -170,7 +169,7 @@ at random, allowing weighted selection.
 \f[B]\-l\f[R], \f[B]\-\-list\f[R]
 List available animations with their properties (name, height, step).
 .TP
-\f[B]\-c\f[R], \f[B]\-\-color\f[R]=\f[I]MODE\f[R]
+\f[B]\-\-color\f[R]=\f[I]MODE\f[R]
 Set color mode: \f[B]truecolor\f[R], \f[B]24bit\f[R], or \f[B]256\f[R].
 .TP
 \f[B]\-p\f[R], \f[B]\-\-param\f[R]=\f[I]KEY\f[R]=\f[I]VALUE\f[R]
@@ -180,7 +179,7 @@ Set coupler parameter (see COUPLERS for available keys).
 \f[B]\-w\f[R]/\f[B]\-W\f[R], \f[B]\-\-sweep\f[R]/\f[B]\-\-no\-sweep\f[R]
 Enable or disable the sweep effect (default: on).
 .TP
-\f[B]\-C\f[R], \f[B]\-\-clear\f[R]
+\f[B]\-c\f[R], \f[B]\-\-clear\f[R]
 Sweep the entire screen instead of just the train area.
 .TP
 \f[B]\-s\f[R]/\f[B]\-S\f[R], \f[B]\-\-stop\f[R]/\f[B]\-\-no\-stop\f[R]

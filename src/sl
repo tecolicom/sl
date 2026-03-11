@@ -14,13 +14,13 @@
 #
 # Options:
 #   -w/-W, --sweep/--no-sweep    Enable/disable sweep (default: on)
-#   -C,    --clear               Sweep the entire screen
+#   -c,    --clear               Sweep the entire screen
 #   -s/-S, --stop/--no-stop      Stop/don't stop at text
 #   -t/-T, --streak/--no-streak  Enable/disable streak (default: on)
 #   -g/-G, --gone/--no-gone      Run off screen to the left
 #   -a,    --art=NAME            Animation art (repeatable; default: sl)
 #   -l,    --list                List available animations
-#   -c,    --color=MODE          Color mode: truecolor/24bit/256
+#          --color=MODE          Color mode: truecolor/24bit/256
 #   -p,    --param=K=V           Set coupler parameter (e.g., STREAK=rumble)
 #   -d,    --debug               Show debug info on the last line before running
 #   -n,    --dryrun              Dry run (show debug info and exit)
@@ -124,13 +124,13 @@ declare -A OPTS=(
     [   debug | d    # debug mode        ]=
     [  dryrun | n    # dry-run mode      ]=
     [   sweep | w ~W # enable sweep      ]=1
-    [   clear | C    # sweep all         ]=
+    [   clear | c    # sweep all         ]=
     [    stop | s ~S # stop at text      ]=
     [  streak | t ~T # enable streak     ]=1
     [    gone | g ~G # run off screen    ]=
     [     art | a  @ # animation art     ]=
     [    list | l  ! # list animations   ]=
-    [   color | c  : # color mode        ]=
+    [   color |    : # color mode        ]=
     [   param | p  % # coupler parameter ]=
 )
 

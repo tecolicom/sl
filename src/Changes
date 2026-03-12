@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+v2026.8 2026-03-12
+
+    - Add grayscale smoke fading to SL animation (256-color, distance-based)
+    - Add -m/--mode option for dark/light smoke with auto-detection
+    - Add Space Invaders (invader, squid, crab, octopus) and UFO animations
+    - Replace bundled Perl modules with cpanfile and cpanm installation
+    - Add Perl dependency installation to CI
+
 v2026.7.2 2026-03-11
 
     - Rename version "modern" to "1992", move art/modern to art/mtoyoda

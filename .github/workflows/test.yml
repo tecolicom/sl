@@ -19,6 +19,13 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libncurses-dev
 
+      - name: Install Perl dependencies
+        working-directory: src
+        run: |
+          curl -sL https://cpanmin.us | perl - --notest --installdeps .
+          perl -MText::VisualWidth::PP -e1
+          perl -MGetopt::EX::termcolor -e1
+
       - name: Build binaries
         working-directory: src
         run: |

@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+v2026.8.3 2026-03-14
+
+    - Unify UFO into invader.c with smooth half-column movement
+    - Fix animation speed for half-step aliens (tick normalization)
+    - Refactor sprite data into per-type arrays with auto frame count
+
 v2026.8.2 2026-03-13
 
     - Add half-column sub-pixel movement for individual invader aliens

@@ -94,6 +94,8 @@ int main() {
     sl_art_height = anim->height;
     int step = anim->step > 0 ? anim->step : DEFAULT_STEP;
     int delay = anim->delay > 0 ? anim->delay : DEFAULT_DELAY * step / 100;
+    int speed = sl_option_int("SPEED", 1);
+    if (speed > 1) delay /= speed;
     int stop_col = sl_option_int("STOP_COL", 0);
     /* Round up stop_col to match step alignment (in column units) */
     int step_cols = (step + 99) / 100;  /* ceiling: 50→1, 100→1, 200→2 */

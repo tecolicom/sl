@@ -4,7 +4,7 @@ sl - sl runs across your terminal
 
 # SYNOPSIS
 
-**sl** \[**-wWsStTgGdnlm**] \[**-a** *name*] \[**-c**] \[**--color** *mode*] \[**-m** *mode*] \[**-p** *K=V*] \[*ART* ...]
+**sl** \[**-wWsStTgGdnlmx**] \[**-a** *name*] \[**-c**] \[**--color** *mode*] \[**-m** *mode*] \[**-x** *N*] \[**-p** *K=V*] \[*ART* ...]
 
 **Options:**\
   **-w**/**-W**, **--sweep**/**--no-sweep** — Enable/disable sweep (2026, default: on)\
@@ -16,6 +16,7 @@ sl - sl runs across your terminal
   **-l**, **--list** — List available animations\
   **--color**=*MODE* — Color mode: truecolor/24bit/256\
   **-m**, **--mode**=*MODE* — Smoke mode: dark/light (default: auto-detect)\
+  **-x**, **--speed**=*N* — Speed multiplier (e.g., -x3 for 3x speed)\
   **-p**, **--param**=*K=V* — Set coupler parameter (e.g., STREAK=rumble)\
   **-d**, **--debug** — Show debug info on the last line before running\
   **-n**, **--dryrun** — Dry run (show debug info and exit)\
@@ -97,6 +98,11 @@ On unsupported terminals or platforms, the train always sweeps
   Set smoke color mode: **dark** or **light**.  When omitted, the
   terminal background luminance is auto-detected.  Dark mode renders
   smoke from white to black; light mode renders from black to white.
+
+- **-x**, **--speed**=*N*
+
+  Speed multiplier.  The animation runs *N* times faster
+  (e.g., **-x3** for 3x speed).
 
 - **-p**, **--param**=*KEY*=*VALUE*
 

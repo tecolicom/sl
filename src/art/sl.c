@@ -116,6 +116,8 @@ static void sl_draw(animation *a, int tick) {
 static void sl_cleanup(animation *a) {
     sl_ctx *c = a->ctx;
     int delay = a->delay > 0 ? a->delay : DEFAULT_DELAY;
+    int speed = sl_option_int("SPEED", 1);
+    if (speed > 1) delay /= speed;
 
     /* Skip fadeout if train has left the screen */
     if (art_skip == 0) {

@@ -4,9 +4,10 @@
 .SH NAME
 sl \- sl runs across your terminal
 .SH SYNOPSIS
-\f[B]sl\f[R] [\f[B]\-wWsStTgGdnlm\f[R]] [\f[B]\-a\f[R] \f[I]name\f[R]]
+\f[B]sl\f[R] [\f[B]\-wWsStTgGdnlmx\f[R]] [\f[B]\-a\f[R] \f[I]name\f[R]]
 [\f[B]\-c\f[R]] [\f[B]\-\-color\f[R] \f[I]mode\f[R]] [\f[B]\-m\f[R]
-\f[I]mode\f[R]] [\f[B]\-p\f[R] \f[I]K=V\f[R]] [\f[I]ART\f[R] ...]
+\f[I]mode\f[R]] [\f[B]\-x\f[R] \f[I]N\f[R]] [\f[B]\-p\f[R]
+\f[I]K=V\f[R]] [\f[I]ART\f[R] ...]
 .PP
 \f[B]Options:\f[R]
 .PD 0
@@ -52,6 +53,11 @@ sl \- sl runs across your terminal
 .PD
 \f[B]\-m\f[R], \f[B]\-\-mode\f[R]=\f[I]MODE\f[R] \(em Smoke mode:
 dark/light (default: auto\-detect)
+.PD 0
+.P
+.PD
+\f[B]\-x\f[R], \f[B]\-\-speed\f[R]=\f[I]N\f[R] \(em Speed multiplier
+(e.g., \-x3 for 3x speed)
 .PD 0
 .P
 .PD
@@ -182,6 +188,11 @@ Set smoke color mode: \f[B]dark\f[R] or \f[B]light\f[R].
 When omitted, the terminal background luminance is auto\-detected.
 Dark mode renders smoke from white to black; light mode renders from
 black to white.
+.TP
+\f[B]\-x\f[R], \f[B]\-\-speed\f[R]=\f[I]N\f[R]
+Speed multiplier.
+The animation runs \f[I]N\f[R] times faster (e.g., \f[B]\-x3\f[R] for 3x
+speed).
 .TP
 \f[B]\-p\f[R], \f[B]\-\-param\f[R]=\f[I]KEY\f[R]=\f[I]VALUE\f[R]
 Set coupler parameter (see COUPLERS for available keys).

@@ -3,16 +3,16 @@
  *
  * HOW TO ADD A NEW CAR
  *
- * 1. Create car-xxx.c with a constructor function:
+ * 1. Create cars/xxx.c with a constructor function:
  *
- *      #include "sl-coupler.h"
- *      static void xxx_origin(coupler *cpl) { ... }
- *      static void xxx_arriving(coupler *cpl, int x) { ... }
- *      static void xxx_departed(coupler *cpl, int x) { ... }
- *      static void xxx_terminal(coupler *cpl) { ... }
+ *      #include "coupler.h"
+ *      static void origin(coupler *cpl) { ... }
+ *      static void arriving(coupler *cpl, int x) { ... }
+ *      static void departed(coupler *cpl, int x) { ... }
+ *      static void terminal(coupler *cpl) { ... }
  *      coupler xxx_coupler(void) {
- *          return (coupler){ .arriving = xxx_arriving,
- *                            .departed = xxx_departed };
+ *          return (coupler){ .arriving = arriving,
+ *                            .departed = departed };
  *      }
  *
  *    - ctx: per-instance data pointer (malloc in origin, free in terminal)
@@ -21,12 +21,13 @@
  *    - departed: called each frame after SL is drawn, before fflush (発車)
  *      - x: current SL position (decreasing from COLS toward 0)
  *    - terminal: called once after the animation loop (終着駅)
- *    - COLS, LINES: available as globals (extern in sl-coupler.h)
+ *    - COLS, LINES: available as globals (extern in sl.h)
+ *    - sl_step: negative column step (set to 0 to stop)
  *    - Any callback may be NULL if not needed.
  *
  * 2. Declare the constructor in this header (below).
  *
- * 3. Register in sl-couplers.c under #ifdef CAR_XXX:
+ * 3. Register in cars/couplers.c under #ifdef CAR_XXX:
  *
  *      #ifdef CAR_XXX
  *          if (car_enabled("XXX", CAR_XXX))
@@ -37,7 +38,7 @@
  *
  *      SL2026_CARS := NULL=1 XXX=1
  *
- *    This auto-generates -DCAR_XXX=1 and car-xxx.c from the entry.
+ *    This auto-generates -DCAR_XXX=1 and cars/xxx.c from the entry.
  *
  * COMPILE-TIME DEFAULT
  *
@@ -52,15 +53,7 @@
 #ifndef SL_COUPLER_H
 #define SL_COUPLER_H
 
-#include <stdio.h>
-#include <term.h>
-
-static inline void mvprintw(int y, int x, const char *fmt, const char *str) {
-    tputs(tparm(tgoto(cursor_address, x, y)), 1, putchar);
-    printf(fmt, str);
-}
-
-extern int COLS, LINES;
+#include "../sl.h"
 
 typedef struct coupler {
     void *ctx;
@@ -83,5 +76,6 @@ void couple(void);
 int car_enabled(const char *name, int dflt);
 coupler null_coupler(void);
 coupler sweep_coupler(void);
+coupler streak_coupler(void);
 
 #endif

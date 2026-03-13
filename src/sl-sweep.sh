@@ -1,11 +1,11 @@
 # sl-sweep.sh - Sweep area detection for sl-2026
 #
 # Detects existing text on the terminal screen to determine where
-# sl-2026 should begin sweeping (pushing text off via dch2).
+# sl-2026 should begin sweeping (pushing text off via dch).
 
 . sl-screen.sh
 
-SL_HEIGHT=7
+: "${SL_HEIGHT:=7}"
 
 # Get the sweep area: the screen region where SL runs
 get_sweep_area() {
@@ -25,11 +25,12 @@ draw_column_marker() {
     ((start_y < 0)) && return 1
     ((col < 0)) && return 0
 
-    local c=$((col + 2))
+    local c=$((col + 1))
     local row
     for ((row = 0; row < SL_HEIGHT; row++)); do
-        mvprintf "$((start_y + row + 1))" "$c" "|"
+        mvprintf "$((start_y + row + 1))" "$c" "<"
     done
+    mvprintf "$((start_y + SL_HEIGHT))" "$((c + 1))" " $col"
     mvprintf "$TERM_LINES" 1 ""
 }
 

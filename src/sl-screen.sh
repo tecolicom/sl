@@ -94,7 +94,7 @@ get_visible_screen() {
     # tail to pick up scrollback data after clear.
     # NBSP is stripped by normalize_screen_text and does not affect
     # sweep calculations.  The last line is outside the SL area.
-    mvprintf "$TERM_LINES" 1 '%s' "$NBSP" > /dev/tty
+    mvprintf "$TERM_LINES" 1 '%s\b' "$NBSP" > /dev/tty
     local screen
     screen=$(capture_screen_text) || return 1
     screen=$(normalize_screen_text "$screen")
@@ -105,9 +105,10 @@ get_visible_screen() {
 # Handles multibyte and wide characters correctly via Text::VisualWidth::PP.
 # Reads from stdin, prints the max display width.
 calc_max_display_col() {
-    PERL_BADLANG=0 perl -I"$bindir/lib" -CSD -MText::VisualWidth::PP=vwidth -e '
+    PERL_BADLANG=0 perl -Mlib="$bindir/perl5/lib/perl5" -CSD -MText::VisualWidth::PP=vwidth -e '
         my $m = -1;
         while (<STDIN>) {
+            chomp;
             s/ +$//;
             my $w = vwidth($_);
             $m = $w if $w > $m;

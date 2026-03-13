@@ -1,22 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# sl - Steam Locomotive wrapper script
+# sl - sl runs across your terminal
 #
-# Dispatches to versioned sl binaries (sl-1985, sl-2010, sl-2023, sl-2026).
-# The sl-2026 version detects existing text on the terminal screen and
-# begins sweeping (pushing text off via dch2) only when the train reaches it.
+# Usage: sl [options] [ART ...]
+#        sl VERSION [options ...]
 #
-# Usage: sl [-d] [VERSION|SUBCOMMAND] [ARGS...]
+# Versions (must be the first argument):
+#   2026  Default version (can be omitted)
+#   2023  Unicode art version, always sweeps
+#   2010  Direct terminal control version
+#   1992  Toyoda Masashi's SL (mtoyoda/sl)
+#   1985  Original curses version with retro delay
 #
 # Options:
-#   -d          Show debug info on the last line before running
-#
-# Version-specific options (sl 2026):
-#   -a          Sweep the entire screen
+#   -w/-W, --sweep/--no-sweep    Enable/disable sweep (default: on)
+#   -c,    --clear               Sweep the entire screen
+#   -s/-S, --stop/--no-stop      Stop/don't stop at text
+#   -t/-T, --streak/--no-streak  Enable/disable streak (default: on)
+#   -g/-G, --gone/--no-gone      Run off screen to the left
+#   -a,    --art=NAME            Animation art (repeatable; default: sl)
+#   -l,    --list                List available animations
+#          --color=MODE          Color mode: truecolor/24bit/256
+#   -m,    --mode=MODE           Smoke mode: dark/light (default: auto-detect)
+#   -x,    --speed=N             Speed multiplier (e.g., -x3 for 3x speed)
+#   -p,    --param=K=V           Set coupler parameter (e.g., STREAK=rumble)
+#   -d,    --debug               Show debug info on the last line before running
+#   -n,    --dryrun              Dry run (show debug info and exit)
+#   -h,    --help                Show help
+#          --version             Show version
 #
 # Subcommands:
 #   capture     Dump captured screen text
-#   sweep-area  Show the 7-line area where SL runs
+#   sweep-area  Show the area where SL runs
 #   clear-col   Print the column where sweeping should start
 #   debug       Show detailed sweep area analysis
 #   mark        Draw a visual marker at the sweep start column
@@ -42,6 +57,8 @@ else
 fi
 PATH=$bindir:$PATH
 
+VERSION=v2026.8.3
+
 ##############################################################################
 # Functions
 ##############################################################################
@@ -49,193 +66,187 @@ PATH=$bindir:$PATH
 warn()  { echo "sl: $*" >&2; }
 error() { warn "$@"; exit 1; }
 
-# Show help and exit
-show_help() {
-    man sl 2>/dev/null || echo "Usage: sl [-dna] [version|subcommand] [options]"
+help()    { sed -n '3,/^$/{ s/^# \{0,1\}//; p; }' "$self"; exit 0; }
+version() { echo "$VERSION"; exit 0; }
+list() {
+    eval "declare -A _ai=($(SL_QUERY=list sl-2026 2>/dev/null))"
+    printf "%-12s %6s %5s %4s\n" "NAME" "HEIGHT" "WIDTH" "STEP"
+    for _k in "${!_ai[@]}"; do
+        _name=${_k%%.*} _prop=${_k#*.}
+        [[ $_prop == height ]] && \
+            printf "%-12s %6s %5s %4s\n" "$_name" "${_ai[$_k]}" "${_ai[$_name.width]:-}" "${_ai[$_name.step]:-2}"
+    done | sort
     exit 0
 }
 
-# Handle a long option from getopts -: pattern
-handle_long_opt() {
-    case "$1" in
-        help)    show_help ;;
-        version) echo "$VERSION"; exit 0 ;;
-        *)       error "unknown option: --$1" ;;
-    esac
+detect_terminal_mode() {
+    local lum
+    lum=$(perl -Mlib="$bindir/perl5/lib/perl5" \
+               -MGetopt::EX::termcolor=luminance -e luminance 2>/dev/null) || return
+    [[ $lum ]] || return
+    (( lum < 50 )) && echo dark || echo light
 }
 
-# Find the latest available version
-resolve_latest() {
-    local v
-    for v in 2026 2023 2010 1985; do
-        if command -v "sl-$v" >/dev/null 2>&1; then
-            echo "$v"
-            return
-        fi
-    done
-    echo 2023
-}
-
-# Output filter for sl-1985: add per-character delay for retro feel.
-# Strips smcup/rmcup sequences to prevent alternate screen switching.
-slowout() {
-    PERL_BADLANG=0 perl -e '
-        $|=1;
-        my $delay = 0.0005;
-        my %skip;
-        for my $cap (qw(smcup rmcup)) {
-            my $s = `tput $cap 2>/dev/null`;
-            $skip{$s} = 1 if length $s;
-        }
-        while (sysread(STDIN, my $c, 1)) {
-            if ($c eq "\e") {
-                my $seq = $c;
-                sysread(STDIN, $c, 1) or last;
-                $seq .= $c;
-                if ($c eq "[" || $c eq "(") {
-                    while (sysread(STDIN, $c, 1)) {
-                        $seq .= $c;
-                        last if $c =~ /[A-Za-z]/;
-                    }
-                }
-                print $seq unless $skip{$seq};
-            } else {
-                print $c;
-                select(undef, undef, undef, $delay);
-            }
-        }
-    '
-}
-
-##############################################################################
-# Argument parsing
-##############################################################################
-
-VERSION=v2026.1
-global_opts="dhn"
-
-debug_flag=0
-dryrun=0
-passthru=()
-OPTIND=1
-while getopts ":${global_opts}-:" opt; do
-    case "$opt" in
-        d) debug_flag=1 ;;
-        h) show_help ;;
-        n) dryrun=1 ;;
-        -) handle_long_opt "$OPTARG" ;;
-        '?') passthru+=("-$OPTARG") ;;
-    esac
-done
-shift $((OPTIND - 1))
-set -- "${passthru[@]}" "$@"
-
-subcmd=${1:-}
-case "$subcmd" in
-    2026|2023|2010|1985)
-        version=$subcmd
-        shift
-        ;;
-    capture|clear-col|debug|mark|sweep-area)
-        shift
-        ;;
-    *)
-        version=$(resolve_latest)
-        ;;
-esac
-
-##############################################################################
-# Version-specific functions
-##############################################################################
-
-# Run sl-2026 with sweep detection and optional flags.
-#   -a  Sweep the entire screen (SL_SWEEP_ALL)
-sl_2026() {
-    local OPTIND opt sweep_all=0
-    while getopts ":${global_opts}a-:" opt; do
-        case "$opt" in
-            [$global_opts]) ;;
-            a) sweep_all=1 ;;
-            -) handle_long_opt "$OPTARG" ;;
-            '?') error "unknown option: -$OPTARG" ;;
-        esac
-    done
-    shift $((OPTIND - 1))
-
+# Load sweep support: export SL_ART, query art info, source sl-sweep.sh
+load_sweep() {
+    [[ $art ]] && export SL_ART=$art
+    eval "declare -A SL_ART_INFO=($(SL_QUERY=list sl-2026 2>/dev/null))"
+    local _art=${art:-${SL_ART:-}}
+    if [[ $_art == random ]]; then
+        local _names=() _k
+        for _k in "${!SL_ART_INFO[@]}"; do
+            [[ $_k == *.height ]] && _names+=("${_k%.height}")
+        done
+        art=${_names[RANDOM % ${#_names[@]}]}
+        export SL_ART=$art
+    elif [[ $_art == *,* ]]; then
+        local _names
+        IFS=, read -ra _names <<< "$_art"
+        art=${_names[RANDOM % ${#_names[@]}]}
+        export SL_ART=$art
+    fi
+    SL_HEIGHT=${SL_ART_INFO[${art:-sl}.height]:-}
     . sl-sweep.sh
-    if ((sweep_all)); then
-        export SL_SWEEP_ALL=1
-    fi
-    local clear_col=9999
-    if ((sweep_all)); then
-        col=$(get_visible_screen | calc_max_display_col)
-    else
-        col=$(calc_clear_col)
-    fi
-    if [[ -n "$col" ]] && ((col >= 0)); then
-        clear_col=$col
-    fi
-    if ((debug_flag || dryrun)); then
-        get_terminal_size
-        printf "========== %s %s %s %sx%s %s" \
-            "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col"
-        ((dryrun)) && { echo; return; }
-    fi
-    SL_SWEEP_COL=$clear_col exec sl-$version "$@"
 }
 
-# Run sl-1985 via script(1) with per-character delay output.
-# sl-1985 uses curses and needs a pty; use script(1) to provide one.
-sl_1985() {
-    if script --help 2>&1 | grep -q -- '--command'; then
-        script -qc sl-1985 /dev/null
-    else
-        script -q /dev/null sl-1985 "$@"
-    fi | slowout
-}
+##############################################################################
+# Version dispatch (non-2026 versions exit here)
+##############################################################################
+
+if [[ ${1:-} && ${1:0:1} != - ]]; then
+    case "$1" in
+        2026)            shift ;;
+        1992|2023|2010) v=$1; shift; exec sl-$v "$@" ;;
+        1985)            shift; . sl-1985.sh "$@"; exit ;;
+    esac
+fi
+
+##############################################################################
+# Option parsing (2026 only)
+##############################################################################
+
+USAGE="sl [options] [ART ...]"
+
+declare -A OPTS=(
+    [&REQUIRE]=0.8.0 [&USAGE]="$USAGE" [&DELIM]=
+    [    help | h  ! # show help         ]=
+    [ version |    ! # show version      ]=
+    [   debug | d    # debug mode        ]=
+    [  dryrun | n    # dry-run mode      ]=
+    [   sweep | w ~W # enable sweep      ]=1
+    [   clear | c    # sweep all         ]=
+    [    stop | s ~S # stop at text      ]=
+    [  streak | t ~T # enable streak     ]=1
+    [    gone | g ~G # run off screen    ]=
+    [     art | a  @ # animation art     ]=
+    [    list | l  ! # list animations   ]=
+    [   color |    : # color mode        ]=
+    [    mode | m  : # dark or light mode ]=
+    [   speed | x  : # speed multiplier  ]=
+    [   param | p  % # coupler parameter ]=
+)
+
+. getoptlong.sh OPTS "$@"
 
 ##############################################################################
 # Subcommand dispatch (all exit here)
 ##############################################################################
 
+subcmd=${1:-}
+arts=()
 case "$subcmd" in
-    capture|sweep-area|clear-col|debug|mark)
-        . sl-sweep.sh
+    capture|clear-col|debug|mark|sweep-area)
+        shift
         ;;
+    ''|-*) ;;
+    *)  subcmd=; for _a; do arts+=("$_a"); done; shift $# ;;
 esac
 
-case "$subcmd" in
-    capture)
-        get_visible_screen || { error "Failed to capture screen text."; }
-        exit 0
-        ;;
-    sweep-area)
-        get_sweep_area || { error "Failed to capture screen text."; }
-        exit 0
-        ;;
-    clear-col)
-        clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
-        printf '%s\n' "$clear_col"
-        exit 0
-        ;;
-    debug)
-        debug_capture_and_col
-        exit $?
-        ;;
-    mark)
-        clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
-        draw_column_marker "$clear_col"
-        printf '%s\n' "$clear_col"
-        exit 0
-        ;;
-esac
-
-##############################################################################
-# Run the selected version
-##############################################################################
-
-if declare -f "sl_$version" >/dev/null 2>&1; then
-    "sl_$version" "$@"
-else
-    exec sl-$version "$@"
+if [[ $subcmd ]]; then
+    load_sweep
+    case "$subcmd" in
+        capture)
+            get_visible_screen || { error "Failed to capture screen text."; }
+            exit 0
+            ;;
+        sweep-area)
+            get_sweep_area || { error "Failed to capture screen text."; }
+            exit 0
+            ;;
+        clear-col)
+            clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
+            printf '%s\n' "$clear_col"
+            exit 0
+            ;;
+        debug)
+            debug_capture_and_col
+            exit $?
+            ;;
+        mark)
+            clear_col=$(calc_clear_col) || { error "Failed to calculate clear column."; }
+            draw_column_marker "$clear_col"
+            exit 0
+            ;;
+    esac
 fi
+
+##############################################################################
+# Run sl-2026
+##############################################################################
+
+run_sl() {
+    load_sweep
+
+    [[ $clear ]] && export SL_SWEEP_ALL=1
+
+    clear_col=9999
+    col=$( [[ $clear ]] && get_visible_screen | calc_max_display_col || calc_clear_col )
+    [[ -n "$col" ]] && ((col >= 0)) && clear_col=$col
+
+    if [[ $debug || $dryrun ]]; then
+        get_terminal_size
+        printf "========== %s %s %s %sx%s %s %s" \
+            "${TERM:-}" "${TERM_PROGRAM:-}" "${LANG:-}" "$TERM_COLS" "$TERM_LINES" "$clear_col" "${art:-sl}"
+        [[ $dryrun ]] && { echo; return 0; }
+    fi
+
+    export SL_CAR_SWEEP=${sweep:-0}  SL_SWEEP_COL=$clear_col
+    export SL_CAR_STREAK=${streak:-0}
+    if   [[ $stop   ]]; then export SL_STOP_COL=$clear_col
+    elif [[ $gone ]]; then export SL_STOP_COL=-1
+    fi
+
+    if [[ ${param[STREAK]:-} ]]; then
+        IFS=, read -ra _modes <<< "${param[STREAK]}"
+        for _m in "${_modes[@]}"; do
+            export "SL_STREAK_${_m^^}=1"
+        done
+    fi
+
+    case ${color:-} in
+        truecolor|24bit) export COLORTERM=truecolor ;;
+        256)             unset COLORTERM ;;
+        ?*)              error "unknown color mode: $color" ;;
+    esac
+    # Detect dark/light mode for smoke
+    local _mode=${mode:-$(detect_terminal_mode)}
+    : ${_mode:=dark}
+    case $_mode in
+        dark)  export SL_DARK=1 ;;
+        light) export SL_DARK=0 ;;
+        *)     error "unknown mode: $_mode (use dark or light)" ;;
+    esac
+
+    [[ ${speed:-} ]] && export SL_SPEED=$speed
+
+    sl-2026 "$@"
+}
+
+arts=("${art[@]}" "${arts[@]}")
+if ((${#arts[@]} == 0)); then
+    arts=("")
+fi
+for _art in "${arts[@]}"; do
+    art=$_art
+    run_sl "$@"
+done

@@ -1,0 +1,2 @@
+requires 'Text::VisualWidth::PP';
+requires 'Getopt::EX::termcolor';

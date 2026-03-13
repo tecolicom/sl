@@ -1,0 +1,149 @@
+{{$NEXT}}
+
+v2026.8.3 2026-03-14
+
+    - Unify UFO into invader.c with smooth half-column movement
+    - Fix animation speed for half-step aliens (tick normalization)
+    - Refactor sprite data into per-type arrays with auto frame count
+
+v2026.8.2 2026-03-13
+
+    - Add half-column sub-pixel movement for individual invader aliens
+    - Add -x/--speed option for animation speed multiplier
+    - Disable noecho by default, keep under #ifdef SL_NOECHO
+
+v2026.8.1 2026-03-13
+
+    - Rework invader sprites: double horizontal resolution with direct 2x2 encoding
+    - Set step=1 for individual alien animations to fix stop alignment gap
+
+v2026.8 2026-03-12
+
+    - Add grayscale smoke fading to SL animation (256-color, distance-based)
+    - Add -m/--mode option for dark/light smoke with auto-detection
+    - Add Space Invaders (invader, squid, crab, octopus) and UFO animations
+    - Replace bundled Perl modules with cpanfile and cpanm installation
+    - Add Perl dependency installation to CI
+
+v2026.7.2 2026-03-11
+
+    - Rename version "modern" to "1992", move art/modern to art/mtoyoda
+    - Support multiple art arguments (sl d51 clawd sl) and repeatable -a
+    - Reassign -c from --color to --clear
+    - Add d51/c51/modern to ANIMATIONS documentation
+    - Reorganize SYNOPSIS and VERSIONS sections
+
+v2026.7.1 2026-03-10
+
+    - Support random and weighted art selection (-a random, -a sl,sl,clawd)
+
+v2026.7 2026-03-10
+
+    - Add run-off support: -g/--gone option to let the train exit the screen
+    - Add left-side clipping for smooth exit animation
+    - Add D51/C51/Modern animations from mtoyoda/sl
+    - Rename logo animation to modern
+    - Refactor: version-first dispatch, extract sl-1985.sh, add -l/--list option
+    - Remove d51/c51 version shortcuts (use sl modern -c instead)
+    - Move stop logic from sweep coupler to main loop (SL_STOP_COL)
+    - Reject unknown subcommands with error message
+    - Show column number next to marker (no scroll)
+
+v2026.6 2026-03-09
+
+    - Add sl-modern (Toyoda Masashi's mtoyoda/sl) with d51/c51 shortcuts
+
+v2026.5.3 2026-03-09
+
+    - clawd: sine-wave modulated pose timing for natural movement variation
+    - Use getoptlong 0.8.0 negative aliases for -W/-S/-T options
+    - Replace arc4random_uniform with rand() for Linux portability
+
+v2026.5.2 2026-03-09
+
+    - Add per-animation step and frame delay support
+    - clawd: smoother 1-column movement, pose animation with arm/leg coordination
+
+v2026.5.1 2026-03-08
+
+    - Rename -a/--all to -C/--clear, -A/--art to -a/--art
+    - Fix stop column parity alignment to prevent 2-character overshoot
+
+v2026.5 2026-03-08
+
+    - Add animation abstraction layer with pluggable art modules
+    - Add clawd animation (Claude Code mascot with spinner and hat variants)
+    - Add -A/--art option and art-list subcommand for animation selection
+    - Add SL_QUERY mechanism for shell/C binary art info exchange
+    - Remove hardcoded art height from sweep coupler
+    - Fix error message when no sl binary is found
+
+v2026.4.1 2026-03-08
+
+    - Fix sweep/stop column off-by-one from missing chomp in width calc
+    - Align train start position parity with clear_col for exact landing
+    - Fix 2-column gap on first sweep frame
+
+v2026.4 2026-03-06
+
+    - Add -w/--sweep, -W/--no-sweep options to control sweep effect
+    - Add -S/--no-stop option to complement -s/--stop
+    - Fix pandoc converting -- to en dash in man page
+    - Add AIKAWA, Shigechika to AUTHOR section
+
+v2026.3 2026-03-06
+
+    - Add streak effect on the bottom row with shimmer/rumble modes
+    - Add -t/--streak, -T/--nostreak options to control streak
+    - Add -c/--color option for truecolor/256 color mode selection
+    - Add -p/--param option for coupler parameters (e.g., STREAK=rumble,reverse)
+    - Add SIGINT handling to clean up streak line on ^C
+    - Replace getopts with getoptlong.sh for option parsing
+    - Generate help message from script header comment
+    - Add COUPLERS section to README with Sweep/Streak subsections
+    - Add TERMINAL TIPS for ambiguous-width character settings
+
+v2026.2 2026-03-05
+
+    - Add -s option to stop train at text boundary
+    - Reorganize coupler files into cars/ directory
+    - Add sl.h with sl_option API for unified parameter access
+
+v2026.1 2026-03-04
+
+    - Add coupler framework for extensible effects (origin/arriving/departed/terminal hooks)
+    - Extract sweep effect into car-sweep.c coupler
+    - Support compile-time and runtime (SL_CAR_*) control of couplers
+
+v2026.0.1 2026-03-04
+
+    - Refactor sl wrapper: getopts-based option parsing with combined short options
+    - Add warn()/error() helper functions
+    - Fix sweep-area off-by-one error
+    - Fix NBSP not detected in display width calculation
+    - Add GitHub Actions CI workflow
+    - Rename sl-2026-sweep.sh to sl-sweep.sh
+
+v2026 2026-03-03
+
+    - Add sl-2026: screen-aware version with conditional sweep
+    - Detect existing text on terminal and sweep only when the train reaches it
+    - Enter from beyond the right edge to preserve right-side text
+    - Support iTerm2 and Apple Terminal screen capture
+    - Add -a option for full-screen sweep
+    - Add -h/--help and --version options
+    - Add man page (sl.1)
+    - Add shell script wrapper for version dispatch
+
+v2023 2024-11-27
+
+    - Add sl-2023: Unicode art version with box-drawing characters
+    - Add Makefile
+
+v2010 2013-12-08
+
+    - Add sl-2010: direct terminal control version
+
+v1985 1985-08-10
+
+    - Original SL with K&R C and curses

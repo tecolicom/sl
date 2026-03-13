@@ -103,7 +103,9 @@ int main() {
     int start_y = LINES - sl_art_height - 1;
     /* Start just beyond right edge, aligned to step so x reaches 0 */
     int start_x = ((COLS * 100 + step - 1) / step) * step;
+#ifdef SL_NOECHO
     sl_noecho();
+#endif
     signal(SIGINT, on_sigint);
     CALL_COUPLERS(origin);
     int tick = 0;
@@ -113,7 +115,9 @@ int main() {
         CALL_COUPLERS(arriving, col);
         if (!sl_step && tick == 0) {
             anim->cleanup(anim);
+#ifdef SL_NOECHO
             sl_echo();
+#endif
             return 1;
         }
         art_subx = x % 100;
@@ -127,5 +131,7 @@ int main() {
     }
     CALL_COUPLERS(terminal);
     anim->cleanup(anim);
+#ifdef SL_NOECHO
     sl_echo();
+#endif
 }

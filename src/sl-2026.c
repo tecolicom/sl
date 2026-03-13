@@ -124,7 +124,7 @@ int main() {
         }
         art_subx = x % 100;
         art_set_pos(start_y, col);
-        anim->draw(anim, tick);
+        anim->draw(anim, tick * step / DEFAULT_STEP);
         CALL_COUPLERS(departed, col);
         fflush(stdout);
         usleep(delay);

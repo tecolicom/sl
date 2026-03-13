@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 #define PIXEL_ROWS   8    /* pixel rows per alien sprite */
-#define ALIEN_ROWS   4    /* text rows (PIXEL_ROWS / 2) */
+#define ALIEN_ROWS   5    /* text rows ((PIXEL_ROWS + 2) / 2, +1 top/bottom pad) */
 #define N_COLS       3    /* aliens per formation row */
 #define COL_GAP      6    /* columns between aliens */
 #define ROW_GAP      1    /* text rows between alien type rows */
@@ -42,62 +42,62 @@ typedef struct {
 } sprite_px;
 
 static const sprite_px alien_px[N_TYPES][N_FRAMES] = {
-    /* Squid (8 wide) */
+    /* Squid (18 wide) */
     {
-        { 8, { "00011000",    /*    ##    */
-               "00111100",    /*   ####   */
-               "01111110",    /*  ######  */
-               "11011011",    /* ##.##.## */
-               "11111111",    /* ######## */
-               "00100100",    /* ..#..#.. */
-               "01011010",    /* .#.##.#. */
-               "10100101" } },/* #.#..#.# */
-        { 8, { "00011000",
-               "00111100",
-               "01111110",
-               "11011011",
-               "11111111",
-               "01011010",    /* .#.##.#. */
-               "10000001",    /* #......# */
-               "01000010" } },/* .#....#. */
+        { 18, { "       @@@@       ",
+                "     @@@@@@@@     ",
+                "   @@@@@@@@@@@@   ",
+                " @@@@  @@@@  @@@@ ",
+                " @@@@@@@@@@@@@@@@ ",
+                "     @@    @@     ",
+                "   @@  @@@@  @@   ",
+                " @@  @@    @@  @@ " } },
+        { 18, { "       @@@@       ",
+                "     @@@@@@@@     ",
+                "   @@@@@@@@@@@@   ",
+                " @@@@  @@@@  @@@@ ",
+                " @@@@@@@@@@@@@@@@ ",
+                "   @@  @@@@  @@   ",
+                " @@            @@ ",
+                "   @@        @@   " } },
     },
-    /* Crab (11 wide) */
+    /* Crab (24 wide) */
     {
-        { 11, { "00100000100", /* ..#.....#.. */
-                "00010001000", /* ...#...#... */
-                "00111111100", /* ..#######.. */
-                "01101110110", /* .##.###.##. */
-                "11111111111", /* ########### */
-                "10111111101", /* #.#######.# */
-                "10100000101", /* #.#.....#.# */
-                "00011011000" } },/* ...##.##... */
-        { 11, { "00100000100",
-                "10010001001", /* #..#...#..# */
-                "10111111101", /* #.#######.# */
-                "11101110111", /* ###.###.### */
-                "11111111111",
-                "01111111110", /* .#########. */
-                "00100000100", /* ..#.....#.. */
-                "01000000010" } },/* .#.......#. */
+        { 24, { "     @@          @@     ",
+                "       @@      @@       ",
+                "     @@@@@@@@@@@@@@     ",
+                "   @@@@  @@@@@@  @@@@   ",
+                " @@@@@@@@@@@@@@@@@@@@@@ ",
+                " @@  @@@@@@@@@@@@@@  @@ ",
+                " @@  @@          @@  @@ ",
+                "       @@@@  @@@@       " } },
+        { 24, { "     @@          @@     ",
+                " @@    @@      @@    @@ ",
+                " @@  @@@@@@@@@@@@@@  @@ ",
+                " @@@@@@  @@@@@@  @@@@@@ ",
+                " @@@@@@@@@@@@@@@@@@@@@@ ",
+                "   @@@@@@@@@@@@@@@@@@   ",
+                "     @@          @@     ",
+                "   @@              @@   " } },
     },
-    /* Octopus (12 wide) */
+    /* Octopus (26 wide) */
     {
-        { 12, { "000011110000", /* ....####.... */
-                "011111111110", /* .##########. */
-                "111111111111", /* ############ */
-                "111001100111", /* ###..##..### */
-                "111111111111", /* ############ */
-                "001110011100", /* ..###..###.. */
-                "011001100110", /* .##..##..##. */
-                "110000000011" } },/* ##........## */
-        { 12, { "000011110000",
-                "011111111110",
-                "111111111111",
-                "111001100111",
-                "111111111111",
-                "001110011100",
-                "011001100110", /* .##..##..##. */
-                "001100001100" } },/* ..##....##.. */
+        { 26, { "         @@@@@@@@         ",
+                "   @@@@@@@@@@@@@@@@@@@@   ",
+                " @@@@@@@@@@@@@@@@@@@@@@@@ ",
+                " @@@@@@    @@@@    @@@@@@ ",
+                " @@@@@@@@@@@@@@@@@@@@@@@@ ",
+                "     @@@@@@    @@@@@@     ",
+                "   @@@@    @@@@    @@@@   ",
+                " @@@@                @@@@ " } },
+        { 26, { "         @@@@@@@@         ",
+                "   @@@@@@@@@@@@@@@@@@@@   ",
+                " @@@@@@@@@@@@@@@@@@@@@@@@ ",
+                " @@@@@@    @@@@    @@@@@@ ",
+                " @@@@@@@@@@@@@@@@@@@@@@@@ ",
+                "     @@@@@@    @@@@@@     ",
+                "   @@@@    @@@@    @@@@   ",
+                "     @@@@        @@@@     " } },
     },
 };
 
@@ -108,14 +108,14 @@ static const sprite_px alien_px[N_TYPES][N_FRAMES] = {
  *   LL = pixel[lower][C-1]  LR = pixel[lower][C]
  * Result width = pixel width + 1.
  */
-static char *encode_shifted_row(const char *upper, const char *lower, int w) {
+static char *encode_row(const char *upper, const char *lower, int w) {
     char buf[256];
     int pos = 0;
-    for (int c = 0; c <= w; c++) {
-        int ul = (c > 0 && upper[c-1] == '1') ? 8 : 0;
-        int ur = (c < w  && upper[c]   == '1') ? 4 : 0;
-        int ll = (c > 0 && lower[c-1] == '1') ? 2 : 0;
-        int lr = (c < w  && lower[c]   == '1') ? 1 : 0;
+    for (int c = 0; c < w; c += 2) {
+        int ul = (upper[c]   != ' ') ? 8 : 0;
+        int ur = (upper[c+1] != ' ') ? 4 : 0;
+        int ll = (lower[c]   != ' ') ? 2 : 0;
+        int lr = (lower[c+1] != ' ') ? 1 : 0;
         const char *ch = qblock[ul | ur | ll | lr];
         int len = strlen(ch);
         memcpy(buf + pos, ch, len);
@@ -126,9 +126,21 @@ static char *encode_shifted_row(const char *upper, const char *lower, int w) {
 }
 
 static int build_sprite(const sprite_px *sp, char *out[ALIEN_ROWS]) {
+    int w = sp->width;
+    char blank[w + 1];
+    memset(blank, ' ', w);
+    blank[w] = '\0';
+
+    /* pad top and bottom with blank rows */
+    const char *rows[PIXEL_ROWS + 2];
+    rows[0] = blank;
+    for (int i = 0; i < PIXEL_ROWS; i++)
+        rows[i + 1] = sp->px[i];
+    rows[PIXEL_ROWS + 1] = blank;
+
     for (int r = 0; r < ALIEN_ROWS; r++)
-        out[r] = encode_shifted_row(sp->px[r*2], sp->px[r*2+1], sp->width);
-    return sp->width + 1;
+        out[r] = encode_row(rows[r * 2], rows[r * 2 + 1], w);
+    return w / 2;
 }
 
 /*
@@ -298,6 +310,8 @@ static void alien_cleanup(animation *a) {
     animation cname##_animation = { \
         .name    = #cname, \
         .height  = ALIEN_ROWS, \
+        .step    = 1, \
+        .delay   = DEFAULT_DELAY / 2, \
         .init    = cname##_init, \
         .draw    = cname##_draw, \
         .cleanup = alien_cleanup, \

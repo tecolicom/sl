@@ -20,7 +20,7 @@ MTOYODA := ../mtoyoda
 
 all: sl-2026 sl-2023 sl-2010 sl-1992 sl-1985
 
-sl-1985: sl.c
+sl-1985: sl-1985.c
 	$(CC) -std=c89 -w \
 		-Wno-incompatible-function-pointer-types \
 		-Wno-incompatible-pointer-types \
@@ -37,7 +37,7 @@ SL2026_CAR_FLAGS := $(addprefix -DCAR_,$(SL2026_CARS))
 SL2026_CAR_NAMES := $(foreach c,$(SL2026_CARS),$(firstword $(subst =, ,$(c))))
 SL2026_CAR_SRCS  := cars/couplers.c \
 	$(shell echo '$(SL2026_CAR_NAMES)' | tr A-Z a-z | sed 's/[^ ]*/cars\/&.c/g')
-SL2026_ANIM_SRCS := art/arts.c art/sl.c art/clawd.c art/invader.c art/mtoyoda/sl.c
+SL2026_ANIM_SRCS := art/arts.c art/sl.c art/clawd.c art/invader.c art/mtoyoda/sl.c art/swim.c art/bike.c
 
 sl-2026: sl-2026.c $(SL2026_CAR_SRCS) $(SL2026_ANIM_SRCS) sl.h cars/coupler.h art/art.h art/mtoyoda/sl.h
 	$(CC) $(NCURSES_CFLAGS) $(SL2026_CAR_FLAGS) -o $@ sl-2026.c $(SL2026_CAR_SRCS) $(SL2026_ANIM_SRCS) $(NCURSES_LIBS) -lm

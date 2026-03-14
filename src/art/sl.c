@@ -131,6 +131,7 @@ static void sl_cleanup(animation *a) {
             /* Fade chimney smoke on rows 1-2 */
             static const int chimney_col[] = { 5, 4 };
             for (int i = 0; i < 2; i++) {
+                if (chimney_col[i] + 1 > art_maxcols) continue;
                 int color_code;
                 if (c->dark_mode)
                     color_code = 255 - c->fade_offset;

@@ -108,6 +108,7 @@ int main() {
 #ifdef SL_NOECHO
     sl_noecho();
 #endif
+    tputs(cursor_invisible, 1, putchar);
     signal(SIGINT, on_sigint);
     CALL_COUPLERS(origin);
     int tick = 0;
@@ -117,6 +118,7 @@ int main() {
         CALL_COUPLERS(arriving, col);
         if (!sl_step && tick == 0) {
             anim->cleanup(anim);
+            tputs(cursor_normal, 1, putchar);
 #ifdef SL_NOECHO
             sl_echo();
 #endif
@@ -126,6 +128,7 @@ int main() {
         art_set_pos(start_y, col);
         anim->draw(anim, tick * step / DEFAULT_STEP);
         CALL_COUPLERS(departed, col);
+        tputs(tparm(tgoto(cursor_address, 0, LINES - 1)), 1, putchar);
         fflush(stdout);
         usleep(delay);
         if (maxcols > 0) tick++;
@@ -133,7 +136,9 @@ int main() {
     }
     CALL_COUPLERS(terminal);
     anim->cleanup(anim);
+    tputs(cursor_normal, 1, putchar);
 #ifdef SL_NOECHO
     sl_echo();
 #endif
+    if (interrupted) return 130;
 }

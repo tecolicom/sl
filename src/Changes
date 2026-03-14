@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+v2026.8.4 2026-03-14
+
+    - Hide cursor during animation, fix smoke wrapping at right edge
+    - Return exit code 130 on SIGINT
+
 v2026.8.3 2026-03-14
 
     - Unify UFO into invader.c with smooth half-column movement

@@ -271,15 +271,23 @@ The default SL animation with growing smoke trail.
 Smoke fades with distance using 256\-color grayscale, and continues
 fading after the train stops until it disappears completely.
 Moves 2 columns per frame.
-.SS clawd
-The Claude Code mascot running across the terminal with a spinning
-symbol above its head cycling through the Claude Code thinking indicator
-characters.
-Moves 1 column per frame for smoother motion.
+.SS clawd, clawd1, clawd2
+The Claude Code mascot running across the terminal.
+\f[B]clawd\f[R] is an alias for \f[B]clawd2\f[R].
+.PP
+\f[B]clawd1\f[R] displays the mascot with a spinning symbol above its
+head cycling through the Claude Code thinking indicator characters.
+Moves 1 column per frame.
 .IP \(bu 2
 \f[B]SL_HAT\f[R] \(em Hat variant.
 Set to \f[B]party\f[R] for a party hat.
-If not set, a party hat appears randomly with a 1\-in\-20 chance.
+If not set, a party hat appears randomly (default 5% chance).
+.IP \(bu 2
+\f[B]SL_HAT_PCT\f[R] \(em Party hat probability in percent (default:
+\f[B]5\f[R]).
+.PP
+\f[B]clawd2\f[R] uses quarter\-block rendering for smooth half\-column
+movement.
 .SS d51
 D51 steam locomotive with smoke particle system.
 Ported from mtoyoda/sl.

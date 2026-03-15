@@ -59,6 +59,27 @@ static char *qb_encode_row(const char *upper, const char *lower, int w, int shif
     return strdup(buf);
 }
 
+/* Buffer-based encoding (no malloc).
+   Same as qb_encode_row but writes to caller-provided buffer.
+   Returns number of bytes written (excluding NUL). */
+static int qb_encode_row_buf(const char *upper, const char *lower,
+                              int w, int shifted, char *out, int outsize) {
+    int pos = 0;
+    for (int c = shifted ? -1 : 0; c < w; c += 2) {
+        int ul = (c >= 0 && upper[c]   != ' ') ? 8 : 0;
+        int ur = (c+1 < w && upper[c+1] != ' ') ? 4 : 0;
+        int ll = (c >= 0 && lower[c]   != ' ') ? 2 : 0;
+        int lr = (c+1 < w && lower[c+1] != ' ') ? 1 : 0;
+        const char *ch = qblock[ul | ur | ll | lr];
+        int len = strlen(ch);
+        if (pos + len >= outsize) break;
+        memcpy(out + pos, ch, len);
+        pos += len;
+    }
+    out[pos] = '\0';
+    return pos;
+}
+
 /* Generate half-column-shifted version of a quarter-block string.
    Decodes to pixel rows, re-encodes shifted right by 1 pixel column. */
 static char *qblock_shift(const char *src) {

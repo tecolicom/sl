@@ -195,15 +195,21 @@ Smoke fades with distance using 256-color grayscale, and continues
 fading after the train stops until it disappears completely.
 Moves 2 columns per frame.
 
-## clawd
+## clawd, clawd1, clawd2
 
-The Claude Code mascot running across the terminal with a
-spinning symbol above its head cycling through the Claude Code
-thinking indicator characters.
-Moves 1 column per frame for smoother motion.
+The Claude Code mascot running across the terminal.
+**clawd** is an alias for **clawd2**.
+
+**clawd1** displays the mascot with a spinning symbol above its
+head cycling through the Claude Code thinking indicator characters.
+Moves 1 column per frame.
 
 - **SL\_HAT** — Hat variant.  Set to **party** for a party hat.
-  If not set, a party hat appears randomly with a 1-in-20 chance.
+  If not set, a party hat appears randomly (default 5% chance).
+- **SL\_HAT\_PCT** — Party hat probability in percent (default: **5**).
+
+**clawd2** uses quarter-block rendering for smooth half-column
+movement.
 
 ## d51
 

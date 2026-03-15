@@ -7,6 +7,8 @@
 
 extern animation sl_animation;
 extern animation clawd_animation;
+extern animation clawd1_animation;
+extern animation clawd2_animation;
 extern animation d51_animation;
 extern animation c51_animation;
 extern animation modern_animation;
@@ -19,6 +21,8 @@ extern animation ufo_animation;
 animation *animations[] = {
     &sl_animation,
     &clawd_animation,
+    &clawd1_animation,
+    &clawd2_animation,
     &d51_animation,
     &c51_animation,
     &modern_animation,

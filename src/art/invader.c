@@ -8,9 +8,8 @@
  */
 
 #include "art.h"
+#include "qblock.h"
 #include "../sl.h"
-#include <string.h>
-#include <stdlib.h>
 
 #define PIXEL_ROWS   8    /* pixel rows per alien sprite */
 #define ALIEN_ROWS   5    /* text rows for formation ((PIXEL_ROWS + 2) / 2) */
@@ -23,17 +22,6 @@
 #define FRAME_DIV    8    /* ticks per frame change */
 
 #define INVADER_HEIGHT (N_TYPES * ALIEN_ROWS + (N_TYPES - 1) * ROW_GAP)
-
-/*
- * Quarter-block characters indexed by 4-bit pattern: UL UR LL LR
- *
- *   0=" " 1=▗ 2=▖ 3=▄ 4=▝ 5=▐ 6=▞ 7=▟
- *   8=▘  9=▚ A=▌ B=▙ C=▀ D=▜ E=▛ F=█
- */
-static const char *qblock[16] = {
-    " ", "▗", "▖", "▄", "▝", "▐", "▞", "▟",
-    "▘", "▚", "▌", "▙", "▀", "▜", "▛", "█",
-};
 
 /*
  * Pixel data: each sprite_px has a width and 8 rows of '@'/' ' strings.
@@ -126,25 +114,6 @@ static const sprite_type alien_types[] = {
     SPRITE_TYPE(ufo_px),
 };
 
-/* Encode a pair of pixel rows into a quarter-block string.
-   Normal: sample (0,1)(2,3)... → width w/2.
-   Shifted: sample (-1,0)(1,2)... → width w/2+1. */
-static char *encode_row(const char *upper, const char *lower, int w, int shifted) {
-    char buf[256];
-    int pos = 0;
-    for (int c = shifted ? -1 : 0; c < w; c += 2) {
-        int ul = (c >= 0 && upper[c]   != ' ') ? 8 : 0;
-        int ur = (c+1 < w && upper[c+1] != ' ') ? 4 : 0;
-        int ll = (c >= 0 && lower[c]   != ' ') ? 2 : 0;
-        int lr = (c+1 < w && lower[c+1] != ' ') ? 1 : 0;
-        const char *ch = qblock[ul | ur | ll | lr];
-        int len = strlen(ch);
-        memcpy(buf + pos, ch, len);
-        pos += len;
-    }
-    buf[pos] = '\0';
-    return strdup(buf);
-}
 
 #define N_SUBX 2   /* 0=normal, 1=half-column shifted */
 
@@ -165,7 +134,7 @@ static int build_sprite(const sprite_px *sp, int n_rows, char *out[], int shifte
     rows[total_px - 1] = blank;
 
     for (int r = 0; r < n_rows; r++)
-        out[r] = encode_row(rows[r * 2], rows[r * 2 + 1], w, shifted);
+        out[r] = qb_encode_row(rows[r * 2], rows[r * 2 + 1], w, shifted);
     return shifted ? (w / 2 + 1) : (w / 2);
 }
 

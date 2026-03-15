@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+v2026.9 2026-03-15
+
+    - Add clawd2 animation with quarter-block half-column rendering
+    - Rename original clawd (with spinner/hat) to clawd1
+    - Extract shared quarter-block utilities into qblock.h
+    - Add qb_encode_row_buf() for stack-based quarter-block encoding
+
 v2026.8.4 2026-03-14
 
     - Hide cursor during animation, fix smoke wrapping at right edge

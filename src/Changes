@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+v2026.9.1 2026-03-16
+
+    - Optimize clawd2 canvas rendering with binary bitmap operations
+    - Unify walk parameters with clawd1 via tick-based update
+    - Fix Linux build (add missing stdint.h include)
+
 v2026.9 2026-03-15
 
     - Add clawd2 animation with quarter-block half-column rendering

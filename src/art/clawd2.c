@@ -1,5 +1,5 @@
 /*
- * art/clawd.c - Claude Code mascot animation
+ * art/clawd2.c - Claude Code mascot animation
  *
  * Pixel art rendered dynamically via quarter-block encoding.
  * Supports half-column horizontal and half-row vertical movement
@@ -86,10 +86,30 @@ static const char *poses[N_POSES][PX_ROWS] = {
 #define SQUAT_FRAMES  5
 #define LAND_FRAMES   0
 
-static const int jump_curve[] = {
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1, 0
+/* Jump curves: parabolic trajectories in half-row units.
+   Higher jumps have proportionally longer airtime, with natural
+   dwelling near the apex (physically correct parabolic behavior). */
+static const int jump_mid[] = {
+    0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 5, 5, 4, 4, 3, 3, 2, 1, 1, 0
 };
-#define JUMP_FRAMES ((int)(sizeof(jump_curve) / sizeof(jump_curve[0])))
+static const int jump_big[] = {
+    0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7,
+    8, 8, 8, 8, 8, 8, 7, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 3,
+    3, 2, 2, 1, 1, 0
+};
+
+typedef struct {
+    const int *curve;
+    int frames;
+} jump_def;
+
+#define JUMP_DEF(arr) { arr, (int)(sizeof(arr) / sizeof(arr[0])) }
+
+static const jump_def jumps[] = {
+    JUMP_DEF(jump_mid),
+    JUMP_DEF(jump_big),
+};
+#define N_JUMPS ((int)(sizeof(jumps) / sizeof(jumps[0])))
 
 enum { ACT_WALK, ACT_JUMP };
 
@@ -101,7 +121,7 @@ typedef struct {
     int mod_offset;
     int dy;          /* vertical offset in half-rows (0 = ground) */
     int jump_chance;  /* 1/N chance per walk tick (0 = no jump) */
-    int jump_stretch; /* 1-3: ticks per curve frame (randomized) */
+    int jump_type;    /* index into jumps[] (randomized per jump) */
 } clawd_ctx;
 
 static const char blank_row[] = "                  ";  /* PX_WIDTH spaces */
@@ -129,24 +149,23 @@ static void update_walk(clawd_ctx *c, int tick) {
     if (c->jump_chance > 0 && rand() % c->jump_chance == 0) {
         c->action = ACT_JUMP;
         c->action_tick = 0;
-        c->jump_stretch = 1 + rand() % 3;  /* 1x, 2x, or 3x duration */
+        c->jump_type = rand() % N_JUMPS;
     }
 }
 
 static void update_jump(clawd_ctx *c) {
     int t = c->action_tick;
-
-    int air_ticks = JUMP_FRAMES * c->jump_stretch;
+    const jump_def *j = &jumps[c->jump_type];
 
     if (t < SQUAT_FRAMES) {
         /* Squat phase */
         c->pose = POSE_SQUAT;
         c->dy = 0;
-    } else if (t < SQUAT_FRAMES + air_ticks) {
+    } else if (t < SQUAT_FRAMES + j->frames) {
         /* Airborne phase */
         c->pose = POSE_AIR;
-        c->dy = jump_curve[(t - SQUAT_FRAMES) / c->jump_stretch];
-    } else if (t < SQUAT_FRAMES + air_ticks + LAND_FRAMES) {
+        c->dy = j->curve[t - SQUAT_FRAMES];
+    } else if (t < SQUAT_FRAMES + j->frames + LAND_FRAMES) {
         /* Landing phase */
         c->pose = POSE_SQUAT;
         c->dy = 0;

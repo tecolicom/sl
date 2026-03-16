@@ -1,5 +1,5 @@
 /*
- * art/clawd.c - Claude Code mascot animation
+ * art/clawd1.c - Claude Code mascot animation
  *
  * The mascot from Claude Code's startup screen, running across
  * the terminal with a spinner above its head cycling through

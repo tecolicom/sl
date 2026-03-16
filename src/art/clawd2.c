@@ -13,6 +13,7 @@
  */
 
 #include <math.h>
+#include <stdint.h>
 #include "art.h"
 #include "qblock.h"
 #include "../sl.h"

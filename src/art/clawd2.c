@@ -4,6 +4,12 @@
  * 1-bit pixel art is drawn onto a 4-bit canvas at pixel coordinates,
  * then rendered via quarter-block lookup.  Half-column and half-row
  * movement are handled as simple coordinate offsets.
+ *
+ * Timing note: sl-2026.c passes tick = frame * step / DEFAULT_STEP,
+ * so step=50 delivers ticks at half the frame rate.  Walk updates
+ * run per-tick (not per-frame), allowing LEGS_TICKS and MOD_PERIOD
+ * to use the same values as clawd1.  Jump updates run per-frame
+ * for smooth parabolic curves.
  */
 
 #include <math.h>
@@ -35,7 +41,7 @@ static const char *poses[N_POSES][PX_ROWS] = {
         "                  ",    /* legs lower */
     },
     [POSE_SQUAT] = {
-        "                  ",    /* legs upper (wide) */
+        "                  ",    /* (blank: body shifted down) */
         "   @@@@@@@@@@@@   ",    /* head upper */
         " @@@@ @@@@@@ @@@@ ",    /* head lower */
         "   @@@@@@@@@@@@   ",    /* body upper */
@@ -63,28 +69,27 @@ static const char *poses[N_POSES][PX_ROWS] = {
  *             " ▐█████▌ "     body
  *             " ▝▝   ▘▘"      legs closed
  *
- *   squat:    " ▐▛███▜▌"      head
- *             "▝▜█████▛▘"     body + arms
- *             " ▘▝     ▘▝"    legs wide
+ *   squat:    " ▗▄▄▄▄▄▖"      head (lower half)
+ *             "▝▜▙███▟▛▘"     head lower + body
+ *             "▝▀▀▀▀▀▀▀▘"     body (upper half)
  *
  *   air:      " ▐▛███▜▌"      head
- *             "▝▜█████▛▘"     body + arms
- *             "  ▝▘ ▝▘"       legs tucked
+ *             " ▐█████▌"      body
+ *             "  ▝▝ ▘▘"       legs tucked
  */
 
 #define CLAWD_HEIGHT  7    /* max rows: 3 char + 4 jump height */
 #define GROUND_ROW    4    /* ground level in cell rows (pixel y = GROUND_ROW * 2) */
 
-/* Walk parameters */
-#define LEGS_TICKS   20    /* base ticks per leg state */
-#define MOD_PERIOD  240    /* ticks per speed modulation cycle */
+/* Walk parameters (normalized tick units — same values as clawd1) */
+#define LEGS_TICKS   10    /* base ticks per leg state */
+#define MOD_PERIOD  120    /* ticks per speed modulation cycle */
 #define MOD_RANGE    60    /* speed variation ±60% of base */
 #define SPEED_SCALE 100
 
 /* Jump parameters */
-#define JUMP_CHANCE  1000  /* 1/N chance per walk tick */
+#define JUMP_CHANCE   500  /* 1/N chance per walk tick */
 #define SQUAT_FRAMES  5
-#define LAND_FRAMES   0
 
 /* Jump curves: parabolic trajectories in half-row units.
    Higher jumps have proportionally longer airtime, with natural
@@ -119,10 +124,13 @@ typedef struct {
     int pose;
     int pose_accum;
     int mod_offset;
+    int last_tick;    /* for tick-based walk update */
     int dy;          /* vertical offset in half-rows (0 = ground) */
     int jump_chance;  /* 1/N chance per walk tick (0 = no jump) */
     int jump_type;    /* index into jumps[] (randomized per jump) */
 } clawd_ctx;
+
+static uint32_t bitmaps[N_POSES][PX_ROWS];  /* shared across instances */
 
 /* 4-bit canvas: each cell holds a quarter-block pattern (2×2 pixels).
    1-bit bitmaps are drawn onto the canvas at pixel coordinates,
@@ -130,24 +138,27 @@ typedef struct {
 #define CANVAS_ROWS  CLAWD_HEIGHT
 #define CANVAS_COLS  (PX_WIDTH / 2 + 1)  /* +1 for half-column shift */
 
-static const int pixel_bit[2][2] = {
-    { 8, 4 },  /* upper: UL, UR */
-    { 2, 1 },  /* lower: LL, LR */
+/* Map 2-bit pixel pair to upper/lower half of 4-bit cell.
+   Index: bit0 = left pixel, bit1 = right pixel. */
+static const uint8_t cell_map[2][4] = {
+    { 0, 8, 4, 12 },  /* upper: 0, UL, UR, UL+UR */
+    { 0, 2, 1,  3 },  /* lower: 0, LL, LR, LL+LR */
 };
 
-/* Draw a 1-bit bitmap onto the 4-bit canvas at pixel offset (ox, oy) */
+/* Draw a 1-bit bitmap onto the 4-bit canvas at pixel offset (ox, oy).
+   Bitmap is an array of uint32_t bitmasks (bit 0 = leftmost pixel).
+   Half-column shift is achieved by shifting the bitmap left by ox bits. */
 static void canvas_draw(uint8_t canvas[][CANVAS_COLS],
                          int ox, int oy,
-                         const char *bitmap[], int rows, int width) {
+                         const uint32_t *bitmap, int rows) {
     for (int r = 0; r < rows; r++) {
         int py = oy + r;
         if (py < 0 || py >= CANVAS_ROWS * 2) continue;
-        for (int x = 0; x < width; x++) {
-            if (bitmap[r][x] == ' ') continue;
-            int px = ox + x;
-            if (px < 0 || px >= CANVAS_COLS * 2) continue;
-            canvas[py / 2][px / 2] |= pixel_bit[py & 1][px & 1];
-        }
+        uint32_t bm = bitmap[r] << ox;
+        const uint8_t *map = cell_map[py & 1];
+        uint8_t *crow = canvas[py / 2];
+        for (int c = 0; c < CANVAS_COLS; c++)
+            crow[c] |= map[(bm >> (2 * c)) & 3];
     }
 }
 
@@ -173,7 +184,22 @@ static void clawd_init(animation *a) {
     a->ctx = c;
     c->mod_offset = rand() % MOD_PERIOD;
     c->pose = rand() & 1;
+    c->last_tick = -1;
     c->jump_chance = sl_option_int("CLAWD_JUMP", JUMP_CHANCE);
+
+    /* Convert pixel art strings to bitmasks (once, shared) */
+    static int bitmaps_ready;
+    if (!bitmaps_ready) {
+        for (int p = 0; p < N_POSES; p++)
+            for (int r = 0; r < PX_ROWS; r++) {
+                uint32_t bm = 0;
+                for (int x = 0; x < PX_WIDTH; x++)
+                    if (poses[p][r][x] != ' ')
+                        bm |= 1U << x;
+                bitmaps[p][r] = bm;
+            }
+        bitmaps_ready = 1;
+    }
 }
 
 static void update_walk(clawd_ctx *c, int tick) {
@@ -207,10 +233,6 @@ static void update_jump(clawd_ctx *c) {
         /* Airborne phase */
         c->pose = POSE_AIR;
         c->dy = j->curve[t - SQUAT_FRAMES];
-    } else if (t < SQUAT_FRAMES + j->frames + LAND_FRAMES) {
-        /* Landing phase */
-        c->pose = POSE_SQUAT;
-        c->dy = 0;
     } else {
         /* Return to walk */
         c->action = ACT_WALK;
@@ -226,17 +248,23 @@ static void clawd_draw(animation *a, int tick) {
     clawd_ctx *c = a->ctx;
     int sx = art_subx ? 1 : 0;
 
-    /* Update animation state */
-    switch (c->action) {
-    case ACT_WALK: update_walk(c, tick); break;
-    case ACT_JUMP: update_jump(c);      break;
+    /* Walk updates run per-tick (not per-frame) so that
+       LEGS_TICKS and MOD_PERIOD match clawd1 directly.
+       Jump updates run per-frame for smooth curves. */
+    if (c->action == ACT_WALK) {
+        if (tick != c->last_tick) {
+            c->last_tick = tick;
+            update_walk(c, tick);
+        }
+    } else {
+        update_jump(c);
     }
 
     /* Draw pose onto canvas */
     uint8_t canvas[CANVAS_ROWS][CANVAS_COLS];
     memset(canvas, 0, sizeof(canvas));
     int py = GROUND_ROW * 2 - c->dy;
-    canvas_draw(canvas, sx, py, poses[c->pose], PX_ROWS, PX_WIDTH);
+    canvas_draw(canvas, sx, py, bitmaps[c->pose], PX_ROWS);
 
     /* Render canvas to screen */
     char buf[256];

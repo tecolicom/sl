@@ -1,9 +1,9 @@
 /*
  * art/clawd2.c - Claude Code mascot animation
  *
- * Pixel art rendered dynamically via quarter-block encoding.
- * Supports half-column horizontal and half-row vertical movement
- * for smooth animation including walking and jumping.
+ * 1-bit pixel art is drawn onto a 4-bit canvas at pixel coordinates,
+ * then rendered via quarter-block lookup.  Half-column and half-row
+ * movement are handled as simple coordinate offsets.
  */
 
 #include <math.h>
@@ -73,7 +73,7 @@ static const char *poses[N_POSES][PX_ROWS] = {
  */
 
 #define CLAWD_HEIGHT  7    /* max rows: 3 char + 4 jump height */
-#define GROUND_ROW    4    /* first text row at ground level (sy=0) */
+#define GROUND_ROW    4    /* ground level in cell rows (pixel y = GROUND_ROW * 2) */
 
 /* Walk parameters */
 #define LEGS_TICKS   20    /* base ticks per leg state */
@@ -124,7 +124,49 @@ typedef struct {
     int jump_type;    /* index into jumps[] (randomized per jump) */
 } clawd_ctx;
 
-static const char blank_row[] = "                  ";  /* PX_WIDTH spaces */
+/* 4-bit canvas: each cell holds a quarter-block pattern (2×2 pixels).
+   1-bit bitmaps are drawn onto the canvas at pixel coordinates,
+   then rendered to screen via qblock[] lookup. */
+#define CANVAS_ROWS  CLAWD_HEIGHT
+#define CANVAS_COLS  (PX_WIDTH / 2 + 1)  /* +1 for half-column shift */
+
+static const int pixel_bit[2][2] = {
+    { 8, 4 },  /* upper: UL, UR */
+    { 2, 1 },  /* lower: LL, LR */
+};
+
+/* Draw a 1-bit bitmap onto the 4-bit canvas at pixel offset (ox, oy) */
+static void canvas_draw(uint8_t canvas[][CANVAS_COLS],
+                         int ox, int oy,
+                         const char *bitmap[], int rows, int width) {
+    for (int r = 0; r < rows; r++) {
+        int py = oy + r;
+        if (py < 0 || py >= CANVAS_ROWS * 2) continue;
+        for (int x = 0; x < width; x++) {
+            if (bitmap[r][x] == ' ') continue;
+            int px = ox + x;
+            if (px < 0 || px >= CANVAS_COLS * 2) continue;
+            canvas[py / 2][px / 2] |= pixel_bit[py & 1][px & 1];
+        }
+    }
+}
+
+/* Render a canvas row to a quarter-block string */
+static int canvas_render(const uint8_t *row, int cols,
+                          char *buf, int bufsize) {
+    int last = cols - 1;
+    while (last >= 0 && row[last] == 0) last--;
+    int pos = 0;
+    for (int c = 0; c <= last; c++) {
+        const char *ch = qblock[row[c] & 0xF];
+        int len = strlen(ch);
+        if (pos + len >= bufsize) break;
+        memcpy(buf + pos, ch, len);
+        pos += len;
+    }
+    buf[pos] = '\0';
+    return pos;
+}
 
 static void clawd_init(animation *a) {
     clawd_ctx *c = calloc(1, sizeof(clawd_ctx));
@@ -190,25 +232,17 @@ static void clawd_draw(animation *a, int tick) {
     case ACT_JUMP: update_jump(c);      break;
     }
 
-    int dy = c->dy;
-    int sy = dy % 2;
-    int text_rows = sy ? 4 : 3;
-    int start_row = GROUND_ROW - (dy + 1) / 2;
+    /* Draw pose onto canvas */
+    uint8_t canvas[CANVAS_ROWS][CANVAS_COLS];
+    memset(canvas, 0, sizeof(canvas));
+    int py = GROUND_ROW * 2 - c->dy;
+    canvas_draw(canvas, sx, py, poses[c->pose], PX_ROWS, PX_WIDTH);
 
-    /* Clear all rows */
-    for (int r = 0; r < CLAWD_HEIGHT; r++)
-        art_putline(r, "");
-
-    /* Encode and draw each text row */
+    /* Render canvas to screen */
     char buf[256];
-    for (int r = 0; r < text_rows; r++) {
-        int py = r * 2 - sy;  /* first pixel row of this pair */
-        const char *upper = (py >= 0 && py < PX_ROWS)
-            ? poses[c->pose][py] : blank_row;
-        const char *lower = (py + 1 >= 0 && py + 1 < PX_ROWS)
-            ? poses[c->pose][py + 1] : blank_row;
-        qb_encode_row_buf(upper, lower, PX_WIDTH, sx, buf, sizeof(buf));
-        art_putline(start_row + r, buf);
+    for (int r = 0; r < CANVAS_ROWS; r++) {
+        canvas_render(canvas[r], CANVAS_COLS, buf, sizeof(buf));
+        art_putline(r, buf);
     }
 }
 

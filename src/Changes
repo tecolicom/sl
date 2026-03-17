@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+v2026.9.2 2026-03-17
+
+    - Fix -s option when screen capture is unavailable
+
 v2026.9.1 2026-03-16
 
     - Optimize clawd2 canvas rendering with binary bitmap operations

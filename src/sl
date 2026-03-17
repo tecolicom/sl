@@ -212,7 +212,7 @@ run_sl() {
 
     export SL_CAR_SWEEP=${sweep:-0}  SL_SWEEP_COL=$clear_col
     export SL_CAR_STREAK=${streak:-0}
-    if   [[ $stop   ]]; then export SL_STOP_COL=$clear_col
+    if   [[ $stop   ]]; then export SL_STOP_COL=$((clear_col < 9999 ? clear_col : 0))
     elif [[ $gone ]]; then export SL_STOP_COL=-1
     fi
 

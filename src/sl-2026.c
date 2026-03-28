@@ -113,7 +113,8 @@ int main() {
     CALL_COUPLERS(origin);
     int tick = 0;
     for (int x = start_x; x >= -(anim->width > 0 ? anim->width * 100 : COLS * 100) && sl_step && !interrupted; x -= step) {
-        int col = x / 100;
+        /* Floor division for smooth left-edge clipping with sub-column steps */
+        int col = x < 0 ? (x - 99) / 100 : x / 100;
         int maxcols = COLS - col;
         CALL_COUPLERS(arriving, col);
         if (!sl_step && tick == 0) {
@@ -124,7 +125,7 @@ int main() {
 #endif
             return 1;
         }
-        art_subx = x % 100;
+        art_subx = x - col * 100;
         art_set_pos(start_y, col);
         anim->draw(anim, tick * step / DEFAULT_STEP);
         CALL_COUPLERS(departed, col);

@@ -64,11 +64,35 @@ end tell
 APPLESCRIPT
 }
 
+capture_screen__ghostty() {
+    # write_screen_file captures the entire window, not individual panes,
+    # so bail out when splits are present.
+    local saved_cb filepath
+    saved_cb=$(pbpaste 2>/dev/null)
+    osascript <<'APPLESCRIPT' 2>/dev/null || return 1
+tell application "Ghostty"
+  if (count of terminals of selected tab of front window) > 1 then
+    error "splits not supported"
+  end if
+  perform action "write_screen_file:copy" on focused terminal of selected tab of front window
+end tell
+APPLESCRIPT
+    filepath=$(pbpaste 2>/dev/null)
+    # Restore clipboard
+    if [[ -n "$saved_cb" ]]; then
+        printf '%s' "$saved_cb" | pbcopy 2>/dev/null
+    fi
+    [[ -f "$filepath" ]] || return 1
+    printf '%s' "$(<"$filepath")"
+    rm -f "$filepath"
+}
+
 # Dispatch to the appropriate backend based on TERM_PROGRAM
 capture_screen_text() {
     case "${TERM_PROGRAM:-}" in
         iTerm.app)      capture_screen__iterm ;;
         Apple_Terminal) capture_screen__apple_terminal ;;
+        ghostty)        capture_screen__ghostty ;;
         *)              return 1 ;;
     esac
 }

@@ -66,6 +66,8 @@ terminal emulators on macOS:
 
 - **iTerm2** (iTerm.app)
 - **Apple Terminal** (Terminal.app)
+- **Ghostty** — split panes are not supported; when splits are
+  present, falls back to always-sweep mode
 
 On unsupported terminals or platforms, the train always sweeps
 (equivalent to the 2023 behavior).  Other versions (1985, 1992,

@@ -44,9 +44,9 @@ static const char *poses[N_POSES][PX_ROWS] = {
     [POSE_SQUAT] = {
         "                  ",    /* (blank: body shifted down) */
         "   @@@@@@@@@@@@   ",    /* head upper */
-        " @@@@ @@@@@@ @@@@ ",    /* head lower */
+        "   @@ @@@@@@ @@   ",    /* head lower */
         "   @@@@@@@@@@@@   ",    /* body upper */
-        " @@@@@@@@@@@@@@@@ ",    /* body lower */
+        "   @@@@@@@@@@@@   ",    /* body lower */
         "                  ",    /* legs lower */
     },
     [POSE_AIR] = {
@@ -71,8 +71,8 @@ static const char *poses[N_POSES][PX_ROWS] = {
  *             " ▝▝   ▘▘"      legs closed
  *
  *   squat:    " ▗▄▄▄▄▄▖"      head (lower half)
- *             "▝▜▙███▟▛▘"     head lower + body
- *             "▝▀▀▀▀▀▀▀▘"     body (upper half)
+ *             " ▐▙███▟▌"      head lower + body
+ *             " ▝▀▀▀▀▀▘"      body (upper half)
  *
  *   air:      " ▐▛███▜▌"      head
  *             " ▐█████▌"      body

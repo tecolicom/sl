@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+v2026.10 2026-03-28
+
+    - Add Ghostty screen capture support (split panes fall back to always-sweep)
+    - Slim down clawd2 squat pose
+
 v2026.9.2 2026-03-17
 
     - Fix -s option when screen capture is unavailable

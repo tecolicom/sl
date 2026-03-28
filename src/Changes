@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+v2026.10.1 2026-03-28
+
+    - Fix jerky left-edge disappearing for half-column step animations (ufo, etc.)
+
 v2026.10 2026-03-28
 
     - Add Ghostty screen capture support (split panes fall back to always-sweep)

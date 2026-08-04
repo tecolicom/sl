@@ -68,6 +68,8 @@ terminal emulators on macOS:
 - **Apple Terminal** (Terminal.app)
 - **Ghostty** — split panes are not supported; when splits are
   present, falls back to always-sweep mode
+- **cmux** — reads the surface through its own CLI, so splits are
+  supported
 
 On unsupported terminals or platforms, the train always sweeps
 (equivalent to the 2023 behavior).  Other versions (1985, 1992,

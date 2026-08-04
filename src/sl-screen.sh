@@ -87,8 +87,19 @@ APPLESCRIPT
     rm -f "$filepath"
 }
 
+capture_screen__cmux() {
+    cmux read-screen 2>/dev/null
+}
+
 # Dispatch to the appropriate backend based on TERM_PROGRAM
 capture_screen_text() {
+    # cmux embeds Ghostty and reports TERM_PROGRAM=ghostty, but AppleScript
+    # would reach Ghostty.app, a separate process.  Its own CLI reads the
+    # surface directly, so no AppleScript, no clipboard, and splits work.
+    if [[ -n ${CMUX_SURFACE_ID:-} ]] && command -v cmux > /dev/null; then
+        capture_screen__cmux
+        return
+    fi
     case "${TERM_PROGRAM:-}" in
         iTerm.app)      capture_screen__iterm ;;
         Apple_Terminal) capture_screen__apple_terminal ;;

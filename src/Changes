@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+    - Add cmux screen capture support, fixing -s under cmux
+
 v2026.10.1 2026-03-28
 
     - Fix jerky left-edge disappearing for half-column step animations (ufo, etc.)

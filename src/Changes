@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+v2026.11 2026-08-04
+
     - Add cmux screen capture support, fixing -s under cmux
 
 v2026.10.1 2026-03-28

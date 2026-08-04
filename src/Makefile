@@ -101,6 +101,14 @@ release:
 	$(GIT) commit -m "$$msg"
 	$(GIT) tag $(VERSION)
 	$(GIT) push origin main $(VERSION)
+	# www.tecoli.com lists GitHub Releases, not tags, so publish one.
+	# Its date comes from the tagged commit, so it lands where it belongs.
+	notes=$$(awk -v v=$(VERSION) '$$0 ~ "^"v" " {f=1; next} f && /^v[0-9]/ {exit} f' Changes | sed 's/^    //' | awk 'NF{p=1} p')
+	if gh release create $(VERSION) --title $(VERSION) --notes "$$notes" --verify-tag; then
+		echo "GitHub Release created"
+	else
+		echo "WARNING: gh release create failed; run it by hand"
+	fi
 	echo "Released $(VERSION)"
 
 clean:
